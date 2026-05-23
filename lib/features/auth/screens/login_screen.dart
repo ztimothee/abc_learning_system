@@ -16,15 +16,18 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
 
-  void _login(LoginDTO loginDTO) async {
+  Future<void> _login(LoginDTO loginDTO) async {
+    debugPrint('Attempting login with email: ${loginDTO.email}');
     final authService = ref.read(authServiceProvider);
 
     try {
+      debugPrint('Calling AuthService.login with DTO: $loginDTO');
       await authService.login(loginDTO);
-      ref.invalidate(authStateProvider);
+      ref.invalidate(authServiceProvider);
     } catch (e) {
-      // Handle any unexpected errors
+      debugPrint('Login failed: $e');
       if (!mounted) return;
+      // Handle any unexpected errors
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text('An error occurred: $e')));
@@ -33,8 +36,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final logo = ref.read(imageLogoProvider);
-
     final baseInputDecoration = const InputDecoration(
       border: OutlineInputBorder(),
       contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 18),
@@ -55,7 +56,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    logo,
+                    AppAssets.shimmerLogo,
                     const SizedBox(height: 8),
                     const Text(
                       'Welcome back',
@@ -100,11 +101,14 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       height: 54,
                       child: ElevatedButton(
                         onPressed: () {
+                          debugPrint('Login button pressed');
                           final loginDTO = LoginDTO(
-                            email: _emailController.text,
+                            email: _emailController.text.trim(),
                             password: _passwordController.text,
                           );
+                          debugPrint('Constructed LoginDTO: $loginDTO');
                           _login(loginDTO);
+                          debugPrint('Login process initiated');
                         },
                         child: Text('Login', style: TextStyle(fontSize: 16)),
                       ),

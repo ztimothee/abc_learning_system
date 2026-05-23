@@ -16,12 +16,9 @@ class _AuthGateState extends ConsumerState<AuthGate> {
     final authState = ref.watch(authStateProvider);
 
     return authState.when(
-      loading: () => const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
-      ),
-      error: (error, st) => const Scaffold(
-        body: Center(child: Text('An error occurred.')),
-      ),
+      loading: () => Scaffold(body: const CircularProgressIndicator()),
+      error: (error, stackTrace) =>
+          const Scaffold(body: Center(child: Text('An error occurred.'))),
       data: (session) => session != null
           ? const Scaffold(
               body: Center(child: Text('Welcome to the ABC Learning System!')),
