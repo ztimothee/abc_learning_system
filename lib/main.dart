@@ -1,4 +1,5 @@
 import 'package:abc_learning_system/core/themes/ui.dart';
+import 'package:abc_learning_system/features/auth/screens/auth_gate.dart';
 import 'package:abc_learning_system/features/auth/screens/login_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -28,7 +29,7 @@ class MyApp extends StatelessWidget {
       themeMode: ThemeMode.system,
       debugShowCheckedModeBanner: false,
 
-      home: const LoginScreen(),
+      home: const AuthGate(),
     );
   }
 }
