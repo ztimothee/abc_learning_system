@@ -1,17 +1,20 @@
+import 'package:abc_learning_system/core/themes/ui.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class LoginScreen extends StatefulWidget {
+class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
 
   @override
-  State<LoginScreen> createState() => _LoginScreenState();
+  ConsumerState<LoginScreen> createState() => _LoginScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen> {
+class _LoginScreenState extends ConsumerState<LoginScreen> {
   bool _isPasswordVisible = false;
 
   @override
   Widget build(BuildContext context) {
+    final logo = ref.read(imageLogoProvider);
     final baseInputDecoration = const InputDecoration(
       border: OutlineInputBorder(),
       contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 18),
@@ -19,7 +22,6 @@ class _LoginScreenState extends State<LoginScreen> {
 
     return Scaffold(
       body: Container(
-        color: Colors.white,
         alignment: Alignment.center,
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(24.0),
@@ -33,6 +35,8 @@ class _LoginScreenState extends State<LoginScreen> {
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
+                    logo,
+                    const SizedBox(height: 8),
                     const Text(
                       'Welcome back',
                       textAlign: TextAlign.center,
