@@ -1,4 +1,6 @@
 import 'package:abc_learning_system/core/themes/ui.dart';
+import 'package:abc_learning_system/features/auth/controllers/auth_service.dart';
+import 'package:abc_learning_system/features/auth/models/login_dto.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -11,10 +13,26 @@ class LoginScreen extends ConsumerStatefulWidget {
 
 class _LoginScreenState extends ConsumerState<LoginScreen> {
   bool _isPasswordVisible = false;
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+
+  void _login(LoginDTO loginDTO) {
+    final authService = ref.read(authServiceProvider);
+    
+    try {
+      authService.login(loginDTO);
+    } catch (e) {
+      // Handle any unexpected errors
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('An error occurred: $e')),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     final logo = ref.read(imageLogoProvider);
+
     final baseInputDecoration = const InputDecoration(
       border: OutlineInputBorder(),
       contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 18),
@@ -47,12 +65,14 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     ),
                     const SizedBox(height: 28),
                     TextField(
+                      controller: _emailController,
                       decoration: baseInputDecoration.copyWith(
-                        labelText: 'Username',
+                        labelText: 'Email Address',
                       ),
                     ),
                     const SizedBox(height: 18),
                     TextField(
+                      controller: _passwordController,
                       obscureText: !_isPasswordVisible,
                       decoration: baseInputDecoration.copyWith(
                         labelText: 'Password',
@@ -74,10 +94,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       ),
                     ),
                     const SizedBox(height: 28),
-                    const SizedBox(
+                    SizedBox(
                       height: 54,
                       child: ElevatedButton(
-                        onPressed: null,
+                        onPressed: () => _login(LoginDTO(
+                          email: _emailController.text,
+                          password: _passwordController.text,
+                        )),
                         child: Text('Login', style: TextStyle(fontSize: 16)),
                       ),
                     ),
