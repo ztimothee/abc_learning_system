@@ -13,19 +13,17 @@ class AuthGate extends ConsumerStatefulWidget {
 class _AuthGateState extends ConsumerState<AuthGate> {
   @override
   Widget build(BuildContext context) {
-    final authService = ref.watch(authServiceProvider);
-    final isAuthenticated = authService.checkAuthState();
+    final authState = ref.watch(authStateProvider);
 
-    if (isAuthenticated) {
-      // If the user is authenticated, show the main app screen
-      return Scaffold(
-        body: Center(
-          child: Text('Welcome to the ABC Learning System!'),
-        ),
-      );
-    } else {
-      // If the user is not authenticated, show the login screen
-      return const LoginScreen();
-    }
+    return authState.when(
+      loading: () => Scaffold(body: const CircularProgressIndicator()),
+      error: (error, stackTrace) =>
+          const Scaffold(body: Center(child: Text('An error occurred.'))),
+      data: (session) => session != null
+          ? const Scaffold(
+              body: Center(child: Text('Welcome to the ABC Learning System!')),
+            )
+          : const LoginScreen(),
+    );
   }
 }

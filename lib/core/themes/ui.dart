@@ -1,9 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shimmer/shimmer.dart';
 
-final imageLogoProvider = Provider(
-  (_) => Image.asset('assets/images/abclogo.png', width: 40),
-);
+class AppAssets {
+  static final Image logo = Image.asset('assets/images/abclogo.png');
+
+  static Widget shimmerLogo = Stack(
+    children: [
+      logo,
+      Positioned.fill(
+        child: Shimmer.fromColors(
+          baseColor: Colors.transparent,
+          highlightColor: Colors.white.withOpacity(0.6),
+          child: logo,
+        ),
+      ),
+    ],
+  );
+}
 
 class AppTheme {
   static const _lightSeed = Color(0xFF2F5BFF);
