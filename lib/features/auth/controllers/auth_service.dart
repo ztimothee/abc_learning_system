@@ -17,10 +17,7 @@ class AuthService {
     return response;
   }
 
-  Future<AuthResponse> signUp(
-    LoginDTO loginDTO,
-    Profile profile,
-  ) async {
+  Future<AuthResponse> signUp(LoginDTO loginDTO, Profile profile) async {
     try {
       final response = await supabase.auth.signUp(
         email: loginDTO.email,
@@ -34,13 +31,6 @@ class AuthService {
     }
   }
 
-  bool checkAuthState() {
-    final session = supabase.auth.currentSession;
-
-    // If session is not null, the user is authenticated
-    return session != null;
-  }
-
   Future<void> logout() async {
     await supabase.auth.signOut();
   }
@@ -49,4 +39,9 @@ class AuthService {
 final authServiceProvider = Provider<AuthService>((ref) {
   final supabase = ref.read(supabaseProvider);
   return AuthService(supabase: supabase);
+});
+
+final authStateProvider = StreamProvider<Session?>((ref) {
+  final supabase = ref.read(supabaseProvider);
+  return supabase.auth.onAuthStateChange.map((event) => event.session);
 });

@@ -16,16 +16,18 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
 
-  void _login(LoginDTO loginDTO) {
+  void _login(LoginDTO loginDTO) async {
     final authService = ref.read(authServiceProvider);
-    
+
     try {
-      authService.login(loginDTO);
+      await authService.login(loginDTO);
+      ref.invalidate(authStateProvider);
     } catch (e) {
       // Handle any unexpected errors
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('An error occurred: $e')),
-      );
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('An error occurred: $e')));
     }
   }
 
@@ -97,10 +99,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     SizedBox(
                       height: 54,
                       child: ElevatedButton(
-                        onPressed: () => _login(LoginDTO(
-                          email: _emailController.text,
-                          password: _passwordController.text,
-                        )),
+                        onPressed: () {
+                          final loginDTO = LoginDTO(
+                            email: _emailController.text,
+                            password: _passwordController.text,
+                          );
+                          _login(loginDTO);
+                        },
                         child: Text('Login', style: TextStyle(fontSize: 16)),
                       ),
                     ),
