@@ -2,16 +2,23 @@ import 'package:flutter/material.dart';
 import 'package:shimmer/shimmer.dart';
 
 class AppAssets {
-  static final Image logo = Image.asset('assets/images/abclogo.png');
+  static Image logo ({double? width, double? height}) {
+    return Image.asset(
+      'assets/images/abclogo.png',
+      width: width,
+      height: height,
+      fit: BoxFit.contain,
+    );
+  }
 
   static Widget shimmerLogo = Stack(
     children: [
-      logo,
+      logo(width: 120),
       Positioned.fill(
         child: Shimmer.fromColors(
           baseColor: Colors.transparent,
-          highlightColor: Colors.white.withOpacity(0.6),
-          child: logo,
+          highlightColor: Colors.white.withValues(alpha: 0.6),
+          child: logo(width: 120),
         ),
       ),
     ],
