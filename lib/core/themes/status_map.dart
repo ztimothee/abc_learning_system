@@ -31,3 +31,33 @@ extension CivilStatusStringMap on String {
     }
   }
 }
+
+extension CurrentRoleMap on int {
+  String get currentRole {
+    switch (this) {
+      case 0:
+        return 'student';
+      case 1:
+        return 'tutor';
+      case 2:
+        return 'staff';
+      default:
+        return 'Unknown';
+    }
+  }
+}
+
+extension CurrentRoleStringMap on String {
+  int get currentRoleValue {
+    switch (this) {
+      case 'student':
+        return 0;
+      case 'tutor':
+        return 1;
+      case 'staff':
+        return 2;
+      default:
+        return -1; // Unknown
+    }
+  }
+}
