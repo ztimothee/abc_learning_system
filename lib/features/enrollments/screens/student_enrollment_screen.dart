@@ -173,12 +173,7 @@ class _EnrollmentSection extends ConsumerWidget {
               : CustomInkWellList(
                   onChildTap: (index) {
                     unawaited(
-                      _updateEnrollmentStatus(
-                        context,
-                        ref,
-                        index,
-                        studentId,
-                      ),
+                      _updateEnrollmentStatus(context, ref, index, studentId),
                     );
                   },
                   children: items
