@@ -41,7 +41,13 @@ class Profile {
 
   // Factory constructor to create a Profile instance from a map retrieved from the database
   factory Profile.fromMap(Map<String, dynamic> map) {
-    final staffData = map['staffs'] as Map<String, dynamic>?;
+    final dynamic staffRelation = map['staffs'];
+    final Map<String, dynamic>? staffData =
+        staffRelation is Map<String, dynamic>
+        ? staffRelation
+        : staffRelation is List && staffRelation.isNotEmpty
+        ? staffRelation.first as Map<String, dynamic>
+        : null;
     final dynamic rawCivilStatus = map['civil_status'];
     final int parsedCivilStatus = rawCivilStatus is int
         ? rawCivilStatus
