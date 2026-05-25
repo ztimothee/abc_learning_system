@@ -1,3 +1,4 @@
+import 'package:abc_learning_system/core/themes/formatting_functions.dart';
 import 'package:abc_learning_system/core/themes/status_map.dart';
 import 'package:abc_learning_system/features/auth/controllers/auth_service.dart';
 import 'package:abc_learning_system/features/auth/models/profile.dart';
@@ -39,18 +40,17 @@ class _ProfileBody extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
-    final fullName = _buildFullName(profile);
-    final initials = _buildInitials(profile);
+    final fullName = buildFullName(profile);
+    final initials = buildInitials(profile);
     const schoolYear = 'SY 2026-2027';
     final enrollmentStatus = profile.role.currentRoleValue == 0
         ? 'Enrolled'
         : profile.role.currentRoleValue == 1
-            ? 'Teaching'
-            : profile.role.currentRoleValue == 2
-                ? 'Admin'
-                : 'N/A';
+        ? 'Teaching'
+        : profile.role.currentRoleValue == 2
+        ? 'Admin'
+        : 'N/A';
     final currentRole = profile.role.currentRoleValue;
-    // final currentRole = ref.read(currentUserRoleProvider);
 
     return ListView(
       padding: const EdgeInsets.all(20),
@@ -122,15 +122,20 @@ class _ProfileBody extends ConsumerWidget {
           child: Padding(
             padding: const EdgeInsets.all(16),
             child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                if (currentRole == 0) InfoRow(label: 'Student ID', value: profile.userId ?? 'N/A')
-                else if (currentRole == 1) InfoRow(label: 'Teacher ID', value: profile.userId ?? 'N/A')
-                else if (currentRole == 2) InfoRow(label: 'Admin ID', value: profile.userId ?? 'N/A')
-                else InfoRow(label: 'User ID', value: profile.userId ?? 'N/A'),
+                if (currentRole == 0)
+                  InfoRow(label: 'Student ID', value: profile.userId ?? 'N/A')
+                else if (currentRole == 1)
+                  InfoRow(label: 'Teacher ID', value: profile.userId ?? 'N/A')
+                else if (currentRole == 2)
+                  InfoRow(label: 'Admin ID', value: profile.userId ?? 'N/A')
+                else
+                  InfoRow(label: 'User ID', value: profile.userId ?? 'N/A'),
                 InfoRow(label: 'Gender', value: profile.gender),
                 InfoRow(
                   label: 'Date of Birth',
-                  value: _formatDate(profile.dateOfBirth),
+                  value: formatDate(profile.dateOfBirth),
                 ),
                 InfoRow(
                   label: 'Civil Status',
@@ -146,34 +151,5 @@ class _ProfileBody extends ConsumerWidget {
         ),
       ],
     );
-  }
-
-  String _buildFullName(Profile profile) {
-    final parts = [
-      profile.firstName,
-      if (profile.middleName != null && profile.middleName!.trim().isNotEmpty)
-        profile.middleName!.trim(),
-      profile.lastName,
-    ];
-
-    return parts.join(' ');
-  }
-
-  String _buildInitials(Profile profile) {
-    final first = profile.firstName.trim();
-    final last = profile.lastName.trim();
-    final firstChar = first.isNotEmpty ? first[0] : '';
-    final lastChar = last.isNotEmpty ? last[0] : '';
-    final initials = (firstChar + lastChar).toUpperCase();
-
-    return initials.isEmpty ? '?' : initials;
-  }
-
-  String _formatDate(DateTime date) {
-    final local = date.toLocal();
-    final year = local.year.toString().padLeft(4, '0');
-    final month = local.month.toString().padLeft(2, '0');
-    final day = local.day.toString().padLeft(2, '0');
-    return '$year-$month-$day';
   }
 }

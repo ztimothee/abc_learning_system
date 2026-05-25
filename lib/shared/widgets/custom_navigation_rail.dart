@@ -2,12 +2,14 @@ import 'package:flutter/material.dart';
 
 class CustomNavigationRailDestination {
   final String label;
+  final String? subLabel;
   final IconData icon;
   final IconData? selectedIcon;
   final bool? disabled;
 
   CustomNavigationRailDestination({
     required this.label,
+    this.subLabel,
     required this.icon,
     this.selectedIcon,
     this.disabled,
