@@ -73,6 +73,7 @@ final isLoggingOutProvider = StateProvider<bool>((ref) => false);
 // Provider to access the user's profile data
 final userProfileProvider = FutureProvider<Profile?>((ref) async {
   final supabase = ref.read(supabaseProvider);
+  ref.watch(authStateProvider);
   final user = supabase.auth.currentUser;
 
   if (user == null) {

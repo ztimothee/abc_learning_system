@@ -29,6 +29,7 @@ class CustomNavigationRail extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: destinations.asMap().entries.map((entry) {
         return _CustomNavigationRailItem(
@@ -95,6 +96,8 @@ class _CustomNavigationRailItemState extends State<_CustomNavigationRailItem> {
             ? null
             : () => widget.onDestinationSelected(widget.index),
         child: AnimatedContainer(
+          width: double.infinity,
+          alignment: Alignment.centerLeft,
           duration: const Duration(milliseconds: 180),
           curve: Curves.easeOut,
           padding: const EdgeInsets.symmetric(vertical: 12.0, horizontal: 16.0),
