@@ -54,14 +54,14 @@ class Profile {
         : (rawCivilStatus?.toString() ?? 'Single').civilStatusValue;
 
     return Profile(
-      userId: map['user_id'],
-      firstName: map['first_name'],
+      userId: map['user_id'] ?? '',
+      firstName: map['first_name'] ?? '',
       middleName: map['middle_name'],
-      lastName: map['last_name'],
+      lastName: map['last_name'] ?? '',
       dateOfBirth: DateTime.parse(map['date_of_birth']),
-      gender: map['gender'],
-      contactNumber: map['contact_number'],
-      address: map['address'],
+      gender: map['gender'] ?? '',
+      contactNumber: map['contact_number'] ?? '',
+      address: map['address'] ?? '',
       civilStatus: parsedCivilStatus,
       role: map['role'] ?? 'student',
       position: staffData != null ? staffData['position'] as String? : null,

@@ -11,8 +11,10 @@ class InfoRow extends StatelessWidget {
     final theme = Theme.of(context);
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: Wrap(
+        crossAxisAlignment: WrapCrossAlignment.start,
+        spacing: 12,
+        runSpacing: 4,
         children: [
           SizedBox(
             width: 110,
@@ -23,8 +25,7 @@ class InfoRow extends StatelessWidget {
               ),
             ),
           ),
-          const SizedBox(width: 12),
-          Expanded(child: Text(value, style: theme.textTheme.bodyMedium)),
+          Text(value, style: theme.textTheme.bodyMedium),
         ],
       ),
     );
