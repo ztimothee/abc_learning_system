@@ -18,6 +18,15 @@ class ScheduledSubjectDTO {
 
   // Factory constructor to create a ScheduledSubjectDTO from a map (e.g., from Supabase)
   factory ScheduledSubjectDTO.fromMap(Map<String, dynamic> map) {
+    final subjectAssignmentsList = map['subject_assignments'] as List<dynamic>? ?? [];
+
+    final finalList = subjectAssignmentsList.map((item) {
+      if (item is Map<String, dynamic> && item['subjects'] != null && item['tutors'] != null) {
+        return SubjectAssignmentDTO.fromMap(item);
+      } 
+      return null; // Return null for items that don't match the expected structure
+    }).whereType<SubjectAssignmentDTO>().toList();
+
     return ScheduledSubjectDTO(
       scheduleId: map['schedule_id'] as String,
       weekday: map['weekday'] as int,
@@ -29,11 +38,7 @@ class ScheduledSubjectDTO {
         hour: (map['end_time'] as String).split(':')[0] as int,
         minute: (map['end_time'] as String).split(':')[1] as int,
       ),
-      subjectAssignment: map['subject_assignment'] != null
-          ? SubjectAssignmentDTO.fromMap(
-              map['subject_assignment'] as Map<String, dynamic>,
-            )
-          : null,
+      subjectAssignment: finalList.isNotEmpty ? finalList.first : null,
     );
   }
 }
