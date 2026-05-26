@@ -1,6 +1,7 @@
 import 'package:abc_learning_system/core/services/supabase.dart';
 import 'package:abc_learning_system/features/enrollments/models/enrollment_details_dto.dart';
 import 'package:abc_learning_system/features/enrollments/models/enrollment_items_dto.dart';
+import 'package:abc_learning_system/features/enrollments/models/scheduled_subject_dto.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -28,6 +29,32 @@ class EnrollmentRepository {
 
     return response
         .map((enrollmentMap) => EnrollmentDetailsDTO.fromMap(enrollmentMap))
+        .toList();
+  }
+
+  Future<List<ScheduledSubjectDTO>> getAssignedSubjectsForTutorByTutorId(String tutorId) async {
+    final response = await supabase
+        .from('schedules')
+        .select('''
+          schedule_id,
+          weekday,
+          start_time,
+          end_time,
+          subject_assignments (
+            subject_assigned_id,
+            stub_code,
+            tutors (tutor_id),
+            subjects (
+              subject_id,
+              subject_name,
+              tuition_fee
+            )
+          )
+        ''')
+        .eq('tutor_id', tutorId);
+
+    return response
+        .map((scheduleMap) => ScheduledSubjectDTO.fromMap(scheduleMap))
         .toList();
   }
 

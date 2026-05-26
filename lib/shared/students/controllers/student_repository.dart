@@ -90,6 +90,32 @@ class StudentRepository {
     debugPrint('Raw response from students table: $response');
     return StudentProfileDTO.fromMap(response);
   }
+
+  Future<List<StudentProfileDTO>> getStudentsByStubCode(String stubCode) async {
+    debugPrint('getStudentsByStubCode called with stubCode: $stubCode');
+    final response = await supabase
+        .from('student_enrollment_details_view')
+        .select('''
+            enrollment_status,
+            stub_code,
+            students (
+              display_id,
+              profiles (
+                first_name,
+                middle_name,
+                last_name
+              )
+            )
+          ''')
+        .eq('stub_code', stubCode);
+
+    debugPrint(
+      "Raw response from student_enrollment_details_view for stub_code $stubCode: $response",
+    );
+    return response
+        .map((studentMap) => StudentProfileDTO.fromMap(studentMap))
+        .toList();
+  }
 }
 
 final studentRepositoryProvider = Provider<StudentRepository>((ref) {
@@ -123,4 +149,15 @@ final studentProfileByDisplayIdProvider =
       final repository = ref.watch(studentRepositoryProvider);
       debugPrint('Fetched StudentRepository: $repository');
       return await repository.getStudentProfileByDisplayId(displayId);
+    });
+
+final studentsByStubCodeProvider =
+    FutureProvider.family<List<StudentProfileDTO>, String>((
+      ref,
+      stubCode,
+    ) async {
+      debugPrint('studentsByStubCodeProvider called with stubCode: $stubCode');
+      final repository = ref.watch(studentRepositoryProvider);
+      debugPrint('Fetched StudentRepository: $repository');
+      return await repository.getStudentsByStubCode(stubCode);
     });
