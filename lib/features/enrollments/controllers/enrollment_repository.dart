@@ -1,7 +1,8 @@
 import 'package:abc_learning_system/core/services/supabase.dart';
+import 'package:abc_learning_system/features/enrollments/models/batched_subjects_dto.dart';
 import 'package:abc_learning_system/features/enrollments/models/enrollment_details_dto.dart';
 import 'package:abc_learning_system/features/enrollments/models/enrollment_items_dto.dart';
-import 'package:abc_learning_system/features/enrollments/models/scheduled_subject_dto.dart';
+import 'package:abc_learning_system/features/enrollments/models/tutor_subjects_dto.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -32,29 +33,22 @@ class EnrollmentRepository {
         .toList();
   }
 
-  Future<List<ScheduledSubjectDTO>> getAssignedSubjectsForTutorByTutorId(String tutorId) async {
+  Future<List<TutorSubjectsDTO>> getAssignedSubjectsForTutorByTutorId(
+    String tutorId,
+  ) async {
     final response = await supabase
-        .from('schedules')
+        .from('subject_assignments')
         .select('''
-          schedule_id,
-          weekday,
-          start_time,
-          end_time,
-          subject_assignments (
-            subject_assigned_id,
-            stub_code,
-            tutors (tutor_id),
-            subjects (
-              subject_id,
-              subject_name,
-              tuition_fee
-            )
+          subject_assigned_id,
+          stub_code,
+          subjects (
+            subject_name
           )
         ''')
         .eq('tutor_id', tutorId);
 
     return response
-        .map((scheduleMap) => ScheduledSubjectDTO.fromMap(scheduleMap))
+        .map((scheduleMap) => TutorSubjectsDTO.fromMap(scheduleMap))
         .toList();
   }
 
@@ -62,7 +56,9 @@ class EnrollmentRepository {
   Future<StudentEnrollmentSummaryDTO> getEnrollmentsForStudent(
     String studentId,
   ) async {
-    debugPrint('EnrollmentRepository.getEnrollmentsForStudent called with studentId: $studentId');
+    debugPrint(
+      'EnrollmentRepository.getEnrollmentsForStudent called with studentId: $studentId',
+    );
     final List<Map<String, dynamic>> response = await supabase
         .from(
           'student_enrollment_details_view',
@@ -89,6 +85,27 @@ class EnrollmentRepository {
       totalTuition: totalTuition,
     );
   }
+
+  Future<List<BatchedSubjectsDTO>> getAllBatchedSubjects() async {
+    final response = await supabase.from('batched_subjects').select('''
+          batch_id,
+          batch_name,
+          created_at,
+          subject_to_batch (
+            subjects (
+              subject_id,
+              subject_name,
+              tuition_fee
+            )
+          )
+        ''');
+
+    return response
+        .map((batchMap) => BatchedSubjectsDTO.fromMap(batchMap))
+        .toList();
+  }
+
+  // OPERATIONS FOR ENROLLMENT MANAGEMENT ===========================================================================================
 
   Future<void> enrollStudentInSubject({
     required String studentId,
