@@ -2,7 +2,7 @@ import 'package:abc_learning_system/core/themes/formatting_functions.dart';
 import 'package:abc_learning_system/features/auth/controllers/auth_service.dart';
 import 'package:abc_learning_system/features/auth/models/profile.dart';
 import 'package:abc_learning_system/features/enrollments/controllers/enrollment_repository.dart';
-import 'package:abc_learning_system/features/enrollments/models/scheduled_subject_dto.dart';
+import 'package:abc_learning_system/features/enrollments/models/tutor_subjects_dto.dart';
 import 'package:abc_learning_system/shared/students/controllers/student_repository.dart';
 import 'package:abc_learning_system/shared/tutors/controllers/tutor_repository.dart';
 import 'package:abc_learning_system/shared/widgets/app_loading_screen.dart';
@@ -11,13 +11,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 final tutorAssignedSubjectsProvider =
-    FutureProvider.family<List<ScheduledSubjectDTO>, String>((
-      ref,
-      tutorId,
-    ) async {
-      final repository = ref.watch(enrollmentRepositoryProvider);
-      return repository.getAssignedSubjectsForTutorByTutorId(tutorId);
-    });
+    FutureProvider.family<List<TutorSubjectsDTO>, String>(
+  (ref, tutorId) async {
+    final repository = ref.watch(enrollmentRepositoryProvider);
+    return repository.getAssignedSubjectsForTutorByTutorId(tutorId);
+  },
+);
 
 class TutorEnrollmentScreen extends ConsumerWidget {
   const TutorEnrollmentScreen({super.key});
@@ -61,33 +60,29 @@ class _TutorEnrollmentScreenBodyState
   String _searchQuery = '';
   String? _selectedStubCode;
 
-  String _subjectLabel(ScheduledSubjectDTO subject) {
-    final subjectName =
-        subject.subjectAssignment?.subject?.subjectName ?? 'Unknown Subject';
-    final stubCode = subject.subjectAssignment?.stubCode ?? 'N/A';
+  String _subjectLabel(TutorSubjectsDTO subject) {
+    final subjectName = subject.subjectName;
+    final stubCode = subject.stubCode;
     return '$subjectName - $stubCode';
   }
 
-  List<ScheduledSubjectDTO> _filterSubjects(
-    List<ScheduledSubjectDTO> subjects,
+  List<TutorSubjectsDTO> _filterSubjects(
+    List<TutorSubjectsDTO> subjects,
     String query,
   ) {
     final trimmed = query.trim().toLowerCase();
     if (trimmed.isEmpty) return subjects;
-
     return subjects
-        .where(
-          (subject) => _subjectLabel(subject).toLowerCase().contains(trimmed),
-        )
+        .where((subject) => _subjectLabel(subject).toLowerCase().contains(trimmed))
         .toList();
   }
 
-  void _ensureSelectedSubject(List<ScheduledSubjectDTO> subjects) {
+  void _ensureSelectedSubject(List<TutorSubjectsDTO> subjects) {
     if (_selectedStubCode != null || subjects.isEmpty) return;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       setState(() {
-        _selectedStubCode = subjects.first.subjectAssignment?.stubCode;
+        _selectedStubCode = subjects.first.stubCode;
       });
     });
   }
@@ -131,8 +126,7 @@ class _TutorEnrollmentScreenBodyState
               selectedLabel = 'No assigned subjects';
             } else {
               final selectedSubject = subjects.firstWhere(
-                (subject) =>
-                    subject.subjectAssignment?.stubCode == _selectedStubCode,
+                (subject) => subject.stubCode == _selectedStubCode,
                 orElse: () => subjects.first,
               );
               selectedLabel = _subjectLabel(selectedSubject);
@@ -196,9 +190,7 @@ class _TutorEnrollmentScreenBodyState
                             itemBuilder: (context, index) {
                               final subject = subjects[index];
                               final label = _subjectLabel(subject);
-                              final isSelected =
-                                  subject.subjectAssignment?.stubCode ==
-                                  _selectedStubCode;
+                                final isSelected = subject.stubCode == _selectedStubCode;
 
                               return ListTile(
                                 contentPadding: EdgeInsets.zero,
@@ -211,8 +203,7 @@ class _TutorEnrollmentScreenBodyState
                                     : null,
                                 onTap: () {
                                   setState(() {
-                                    _selectedStubCode =
-                                        subject.subjectAssignment?.stubCode;
+                                    _selectedStubCode = subject.stubCode;
                                   });
                                 },
                               );
@@ -281,9 +272,7 @@ class _TutorEnrollmentScreenBodyState
                                       title: Text(_subjectLabel(subject)),
                                       onTap: () {
                                         setState(() {
-                                          _selectedStubCode = subject
-                                              .subjectAssignment
-                                              ?.stubCode;
+                                          _selectedStubCode = subject.stubCode;
                                         });
                                       },
                                     );
