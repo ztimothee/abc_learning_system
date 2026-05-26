@@ -67,7 +67,6 @@ class EnrollmentRepository {
       'subject_id': subjectId,
       'status': 1, // Active enrollment
     });
-
   }
 
   // Set status 0 enrollment to 1 to confirm enrollment, or set it to 0 to cancel enrollment
@@ -79,7 +78,18 @@ class EnrollmentRepository {
         .from('enrollments')
         .update({'status': newStatus})
         .eq('enrollment_id', enrollmentId);
+  }
 
+  Future<void> updateEnrollmentStatuses({
+    required List<String> enrollmentIds,
+    required int newStatus,
+  }) async {
+    for (final enrollmentId in enrollmentIds) {
+      await updateEnrollmentStatus(
+        enrollmentId: enrollmentId,
+        newStatus: newStatus,
+      );
+    }
   }
 }
 

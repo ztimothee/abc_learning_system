@@ -22,10 +22,10 @@ class CustomInkWellList extends StatelessWidget {
       children: children.asMap().entries.map((entry) {
         return _CustomInkWellListItem(
           index: entry.key,
-          child: entry.value,
           onTap: onChildTap,
           padding: padding,
           animationDuration: animationDuration,
+          child: entry.value,
         );
       }).toList(),
     );
