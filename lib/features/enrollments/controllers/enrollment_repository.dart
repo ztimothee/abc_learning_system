@@ -1,6 +1,8 @@
 import 'package:abc_learning_system/core/services/supabase.dart';
 import 'package:abc_learning_system/features/enrollments/models/enrollment_details_dto.dart';
 import 'package:abc_learning_system/features/enrollments/models/enrollment_items_dto.dart';
+import 'package:abc_learning_system/features/enrollments/models/scheduled_subject_dto.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -30,10 +32,37 @@ class EnrollmentRepository {
         .toList();
   }
 
+  Future<List<ScheduledSubjectDTO>> getAssignedSubjectsForTutorByTutorId(String tutorId) async {
+    final response = await supabase
+        .from('schedules')
+        .select('''
+          schedule_id,
+          weekday,
+          start_time,
+          end_time,
+          subject_assignments (
+            subject_assigned_id,
+            stub_code,
+            tutors (tutor_id),
+            subjects (
+              subject_id,
+              subject_name,
+              tuition_fee
+            )
+          )
+        ''')
+        .eq('tutor_id', tutorId);
+
+    return response
+        .map((scheduleMap) => ScheduledSubjectDTO.fromMap(scheduleMap))
+        .toList();
+  }
+
   // Using native eager-loading proved to be too messy, so we will use a view to fetch all necessary data in one query and then map it to our DTOs.
   Future<StudentEnrollmentSummaryDTO> getEnrollmentsForStudent(
     String studentId,
   ) async {
+    debugPrint('EnrollmentRepository.getEnrollmentsForStudent called with studentId: $studentId');
     final List<Map<String, dynamic>> response = await supabase
         .from(
           'student_enrollment_details_view',
@@ -41,10 +70,12 @@ class EnrollmentRepository {
         .select()
         .eq('student_id', studentId);
 
+    debugPrint('Raw response from student_enrollment_details_view: $response');
     final List<EnrollmentItemsDTO> subjectList = response
         .map((enrollmentMap) => EnrollmentItemsDTO.fromMap(enrollmentMap))
         .toList();
 
+    debugPrint('Mapped EnrollmentItemsDTO list: $subjectList');
     final double totalTuition = response.fold<double>(
       0.0,
       (sum, item) =>
@@ -52,6 +83,7 @@ class EnrollmentRepository {
           (double.tryParse(item['tuition_fee']?.toString() ?? '0') ?? 0.0),
     );
 
+    debugPrint('Calculated total tuition: $totalTuition');
     return StudentEnrollmentSummaryDTO(
       enrollments: subjectList,
       totalTuition: totalTuition,
@@ -103,6 +135,8 @@ final studentEnrollmentSummaryProvider =
       ref,
       studentId,
     ) async {
+      debugPrint('Fetching enrollments for student ID: $studentId');
       final repository = ref.watch(enrollmentRepositoryProvider);
+      debugPrint('EnrollmentRepository instance: $repository');
       return await repository.getEnrollmentsForStudent(studentId);
     });
