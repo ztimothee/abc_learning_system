@@ -96,11 +96,16 @@ class _StudentEnrollmentScreenBodyState
       );
     }
 
-    final studentProfile = ref.watch(studentProfileProvider(userId));
+    debugPrint('Building StudentEnrollmentScreenBody for userId: $userId');
+    final studentProfile = ref.watch(studentProfileByUserIdProvider(userId));
 
+    debugPrint(
+      'Watched studentProfileProvider for userId: $userId, value: $studentProfile',
+    );
     return studentProfile.when(
       loading: () => const AppLoadingScreen(),
-      error: (error, stackTrace) => Center(child: Text('Error: $error')),
+      error: (error, stackTrace) =>
+          Center(child: Text('Profile Error: $error')),
       data: (studentProfile) {
         final studentEnrollments = ref.watch(
           studentEnrollmentSummaryProvider(studentProfile.studentId),
@@ -108,7 +113,8 @@ class _StudentEnrollmentScreenBodyState
 
         return studentEnrollments.when(
           loading: () => const AppLoadingScreen(),
-          error: (error, stackTrace) => Center(child: Text('Error: $error')),
+          error: (error, stackTrace) =>
+              Center(child: Text('Enrollments Error: $error')),
           data: (summary) {
             final assignedSubjects = summary.enrollments
                 .where(
@@ -160,7 +166,10 @@ class _StudentEnrollmentScreenBodyState
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('How to add subjects:', style: theme.textTheme.titleSmall),
+                        Text(
+                          'How to add subjects:',
+                          style: theme.textTheme.titleSmall,
+                        ),
                         const SizedBox(height: 8),
                         Row(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -233,7 +242,9 @@ class _StudentEnrollmentScreenBodyState
                             onItemTap: (enrollment) {
                               // toggle staging: tapping staged removes it
                               setState(() {
-                                _pendingEnrollmentIds.remove(enrollment.enrollmentId);
+                                _pendingEnrollmentIds.remove(
+                                  enrollment.enrollmentId,
+                                );
                               });
                             },
                           ),
@@ -244,8 +255,8 @@ class _StudentEnrollmentScreenBodyState
                               onPressed: enrolledSubjects.isEmpty
                                   ? null
                                   : () => _confirmPendingEnrollments(
-                                        studentProfile.studentId,
-                                      ),
+                                      studentProfile.studentId,
+                                    ),
                               icon: const Icon(Icons.add),
                               label: Text(
                                 enrolledSubjects.isEmpty
