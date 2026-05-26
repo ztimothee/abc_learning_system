@@ -2,14 +2,6 @@ import 'dart:core';
 
 import 'package:abc_learning_system/core/themes/status_map.dart';
 
-Map<String, String> staffData = {
-  'teacher': 'Teacher',
-  'admin': 'Admin',
-  'counselor': 'Counselor',
-  'librarian': 'Librarian',
-  'registrar': 'Registrar',
-};
-
 class Profile {
   final String? userId;
   final String firstName;

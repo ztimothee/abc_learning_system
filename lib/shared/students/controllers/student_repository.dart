@@ -8,11 +8,12 @@ class StudentRepository {
 
   StudentRepository({required this.supabase});
 
-  Future<StudentProfileDTO> getStudentProfileById(String userId) async {
+  Future<StudentProfileDTO> getStudentProfileByDisplayId(String displayId) async {
     final response = await supabase
         .from('students')
         .select('''
           student_id,
+          display_id,
           profiles (
             user_id,
             first_name,
@@ -26,7 +27,7 @@ class StudentRepository {
             role
           )
         ''')
-        .eq('user_id', userId)
+        .eq('display_id', displayId)
         .single();
 
     return StudentProfileDTO.fromMap(response);
@@ -38,7 +39,9 @@ final studentRepositoryProvider = Provider<StudentRepository>((ref) {
   return StudentRepository(supabase: supabase);
 });
 
-final studentProfileProvider = FutureProvider.family<StudentProfileDTO, String>((ref, userId) async {
-  final repository = ref.watch(studentRepositoryProvider);
-  return await repository.getStudentProfileById(userId);
-});
+final studentProfileProvider = FutureProvider.family<StudentProfileDTO, String>(
+  (ref, displayId) async {
+    final repository = ref.watch(studentRepositoryProvider);
+    return await repository.getStudentProfileByDisplayId(displayId);
+  },
+);

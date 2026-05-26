@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:abc_learning_system/core/themes/formatting_functions.dart';
 import 'package:abc_learning_system/features/auth/controllers/auth_service.dart';
 import 'package:abc_learning_system/features/auth/models/profile.dart';
@@ -40,12 +38,54 @@ class StudentEnrollmentScreen extends ConsumerWidget {
   }
 }
 
-class StudentEnrollmentScreenBody extends ConsumerWidget {
+class StudentEnrollmentScreenBody extends ConsumerStatefulWidget {
   final Profile profile;
   const StudentEnrollmentScreenBody({super.key, required this.profile});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<StudentEnrollmentScreenBody> createState() =>
+      _StudentEnrollmentScreenBodyState();
+}
+
+class _StudentEnrollmentScreenBodyState
+    extends ConsumerState<StudentEnrollmentScreenBody> {
+  final Set<String> _pendingEnrollmentIds = {};
+
+  Future<void> _confirmPendingEnrollments(String studentId) async {
+    final pendingIds = _pendingEnrollmentIds.toList();
+    if (pendingIds.isEmpty) return;
+
+    try {
+      final repository = ref.read(enrollmentRepositoryProvider);
+      await repository.updateEnrollmentStatuses(
+        enrollmentIds: pendingIds,
+        newStatus: 1,
+      );
+
+      if (!mounted) return;
+      setState(() {
+        _pendingEnrollmentIds.clear();
+      });
+
+      ref.invalidate(studentEnrollmentSummaryProvider(studentId));
+
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Selected subjects were added to enrolled subjects.'),
+        ),
+      );
+    } catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to update enrollment: $error')),
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final profile = widget.profile;
     final theme = Theme.of(context);
     final fullName = buildFullName(profile);
     final userId = profile.userId;
@@ -71,10 +111,18 @@ class StudentEnrollmentScreenBody extends ConsumerWidget {
           error: (error, stackTrace) => Center(child: Text('Error: $error')),
           data: (summary) {
             final assignedSubjects = summary.enrollments
-                .where((enrollment) => enrollment.enrollmentStatus == 0)
+                .where(
+                  (enrollment) =>
+                      enrollment.enrollmentStatus == 0 &&
+                      !_pendingEnrollmentIds.contains(enrollment.enrollmentId),
+                )
                 .toList();
             final enrolledSubjects = summary.enrollments
-                .where((enrollment) => enrollment.enrollmentStatus == 1)
+                .where(
+                  (enrollment) =>
+                      enrollment.enrollmentStatus == 0 &&
+                      _pendingEnrollmentIds.contains(enrollment.enrollmentId),
+                )
                 .toList();
 
             return ListView(
@@ -101,24 +149,124 @@ class StudentEnrollmentScreenBody extends ConsumerWidget {
                   ),
                 ),
                 const SizedBox(height: 20),
+                Card(
+                  elevation: 0,
+                  color: theme.colorScheme.primaryContainer,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('How to add subjects:', style: theme.textTheme.titleSmall),
+                        const SizedBox(height: 8),
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text('• ', style: TextStyle(fontSize: 16)),
+                            Expanded(
+                              child: Text(
+                                'Tap subjects in the Assigned Subjects list to stage them for enrollment.',
+                                style: theme.textTheme.bodyMedium,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 6),
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text('• ', style: TextStyle(fontSize: 16)),
+                            Expanded(
+                              child: Text(
+                                'Review staged subjects in the Enrolled Subjects panel on the right.',
+                                style: theme.textTheme.bodyMedium,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 6),
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text('• ', style: TextStyle(fontSize: 16)),
+                            Expanded(
+                              child: Text(
+                                'When ready, tap the "Add Selected Subjects" button to confirm enrollment.',
+                                style: theme.textTheme.bodyMedium,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 20),
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    // Assigned Subjects
                     Expanded(
                       child: _EnrollmentSection(
                         title: 'Assigned Subjects',
                         items: assignedSubjects,
-                        studentId: studentProfile.studentId,
-                        newStatus: 1,
+                        onItemTap: (enrollment) {
+                          setState(() {
+                            _pendingEnrollmentIds.add(enrollment.enrollmentId);
+                          });
+                        },
                       ),
                     ),
-                    const SizedBox(width: 20),
+                    const SizedBox(width: 12),
+
+                    // Staged / Pending Subjects (middle)
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          _EnrollmentSection(
+                            title: 'Staged Subjects',
+                            items: enrolledSubjects,
+                            onItemTap: (enrollment) {
+                              // toggle staging: tapping staged removes it
+                              setState(() {
+                                _pendingEnrollmentIds.remove(enrollment.enrollmentId);
+                              });
+                            },
+                          ),
+                          const SizedBox(height: 12),
+                          SizedBox(
+                            width: double.infinity,
+                            child: FilledButton.icon(
+                              onPressed: enrolledSubjects.isEmpty
+                                  ? null
+                                  : () => _confirmPendingEnrollments(
+                                        studentProfile.studentId,
+                                      ),
+                              icon: const Icon(Icons.add),
+                              label: Text(
+                                enrolledSubjects.isEmpty
+                                    ? 'Add Selected Subjects'
+                                    : 'Add Selected Subjects (${enrolledSubjects.length})',
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+
+                    // Confirmed Subjects (status == 1)
                     Expanded(
                       child: _EnrollmentSection(
-                        title: 'Enrolled Subjects',
-                        items: enrolledSubjects,
-                        studentId: studentProfile.studentId,
-                        newStatus: 0,
+                        title: 'Confirmed Subjects',
+                        items: summary.enrollments
+                            .where((e) => e.enrollmentStatus == 1)
+                            .toList(),
+                        onItemTap: null, // unclickable
                       ),
                     ),
                   ],
@@ -132,21 +280,19 @@ class StudentEnrollmentScreenBody extends ConsumerWidget {
   }
 }
 
-class _EnrollmentSection extends ConsumerWidget {
+class _EnrollmentSection extends StatelessWidget {
   final String title;
   final List<EnrollmentItemsDTO> items;
-  final String studentId;
-  final int newStatus;
+  final ValueChanged<EnrollmentItemsDTO>? onItemTap;
 
   const _EnrollmentSection({
     required this.title,
     required this.items,
-    required this.studentId,
-    required this.newStatus,
+    this.onItemTap,
   });
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
     return Column(
@@ -165,16 +311,21 @@ class _EnrollmentSection extends ConsumerWidget {
           child: items.isEmpty
               ? Padding(
                   padding: const EdgeInsets.all(16),
-                  child: Text(
-                    'No subjects found.',
-                    style: theme.textTheme.bodyMedium,
+                  child: SizedBox(
+                    width: double.infinity,
+                    child: Text(
+                      'No subjects found.',
+                      style: theme.textTheme.bodyMedium,
+                    ),
                   ),
                 )
               : CustomInkWellList(
                   onChildTap: (index) {
-                    unawaited(
-                      _updateEnrollmentStatus(context, ref, index, studentId),
-                    );
+                    if (onItemTap == null) {
+                      return;
+                    }
+
+                    onItemTap!(items[index]);
                   },
                   children: items
                       .map(
@@ -203,51 +354,5 @@ class _EnrollmentSection extends ConsumerWidget {
         ),
       ],
     );
-  }
-
-  Future<void> _updateEnrollmentStatus(
-    BuildContext context,
-    WidgetRef ref,
-    int index,
-    String studentId,
-  ) async {
-    if (index < 0 || index >= items.length) {
-      return;
-    }
-
-    final enrollment = items[index];
-
-    try {
-      final repository = ref.read(enrollmentRepositoryProvider);
-      await repository.updateEnrollmentStatus(
-        enrollmentId: enrollment.enrollmentId,
-        newStatus: newStatus,
-      );
-
-      ref.invalidate(studentEnrollmentSummaryProvider(studentId));
-
-      if (!context.mounted) {
-        return;
-      }
-
-      final messenger = ScaffoldMessenger.of(context);
-      messenger.showSnackBar(
-        SnackBar(
-          content: Text(
-            newStatus == 1
-                ? 'Enrollment moved to Enrolled Subjects.'
-                : 'Enrollment moved to Assigned Subjects.',
-          ),
-        ),
-      );
-    } catch (error) {
-      if (!context.mounted) {
-        return;
-      }
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to update enrollment: $error')),
-      );
-    }
   }
 }
