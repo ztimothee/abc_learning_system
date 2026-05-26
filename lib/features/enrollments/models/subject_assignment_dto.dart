@@ -19,11 +19,11 @@ class SubjectAssignmentDTO {
     return SubjectAssignmentDTO(
       subjectAssignedId: map['subject_assigned_id'] as String,
       stubCode: map['stub_code'] as String,
-      tutor: map['tutor'] != null
-          ? TutorProfileDTO.fromMap(map['tutor'] as Map<String, dynamic>)
+      tutor: map['tutors'] != null
+          ? TutorProfileDTO.fromMap(map['tutors'] as Map<String, dynamic>)
           : null,
-      subject: map['subject'] != null
-          ? Subject.fromMap(map['subject'] as Map<String, dynamic>)
+      subject: map['subjects'] != null
+          ? Subject.fromMap(map['subjects'] as Map<String, dynamic>)
           : null,
     );
   }
