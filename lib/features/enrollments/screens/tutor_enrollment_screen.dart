@@ -11,12 +11,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 final tutorAssignedSubjectsProvider =
-    FutureProvider.family<List<TutorSubjectsDTO>, String>(
-  (ref, tutorId) async {
-    final repository = ref.watch(enrollmentRepositoryProvider);
-    return repository.getAssignedSubjectsForTutorByTutorId(tutorId);
-  },
-);
+    FutureProvider.family<List<TutorSubjectsDTO>, String>((ref, tutorId) async {
+      final repository = ref.watch(enrollmentRepositoryProvider);
+      return repository.getAssignedSubjectsForTutorByTutorId(tutorId);
+    });
 
 class TutorEnrollmentScreen extends ConsumerWidget {
   const TutorEnrollmentScreen({super.key});
@@ -73,7 +71,9 @@ class _TutorEnrollmentScreenBodyState
     final trimmed = query.trim().toLowerCase();
     if (trimmed.isEmpty) return subjects;
     return subjects
-        .where((subject) => _subjectLabel(subject).toLowerCase().contains(trimmed))
+        .where(
+          (subject) => _subjectLabel(subject).toLowerCase().contains(trimmed),
+        )
         .toList();
   }
 
@@ -190,7 +190,8 @@ class _TutorEnrollmentScreenBodyState
                             itemBuilder: (context, index) {
                               final subject = subjects[index];
                               final label = _subjectLabel(subject);
-                                final isSelected = subject.stubCode == _selectedStubCode;
+                              final isSelected =
+                                  subject.stubCode == _selectedStubCode;
 
                               return ListTile(
                                 contentPadding: EdgeInsets.zero,
