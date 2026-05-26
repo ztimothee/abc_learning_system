@@ -1,4 +1,5 @@
 import 'package:abc_learning_system/core/services/supabase.dart';
+import 'package:abc_learning_system/shared/students/models/student_master_list_dto.dart';
 import 'package:abc_learning_system/shared/students/models/student_profile_dto.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -116,6 +117,27 @@ class StudentRepository {
         .map((studentMap) => StudentProfileDTO.fromMap(studentMap))
         .toList();
   }
+
+  Future<List<StudentMasterListDTO>> getStudentMasterListByStubCode(
+    String stubCode,
+  ) async {
+    debugPrint(
+      'getStudentMasterListByStubCode called with stubCode: $stubCode',
+    );
+    final response = await supabase
+        .from('student_enrollment_details_view')
+        .select(
+          'subject_id, first_name, middle_name, last_name, display_id, enrollment_status',
+        )
+        .eq('stub_code', stubCode);
+
+    debugPrint(
+      'Raw response from student_enrollment_details_view for master list $stubCode: $response',
+    );
+    return response
+        .map((studentMap) => StudentMasterListDTO.fromMap(studentMap))
+        .toList();
+  }
 }
 
 final studentRepositoryProvider = Provider<StudentRepository>((ref) {
@@ -160,4 +182,17 @@ final studentsByStubCodeProvider =
       final repository = ref.watch(studentRepositoryProvider);
       debugPrint('Fetched StudentRepository: $repository');
       return await repository.getStudentsByStubCode(stubCode);
+    });
+
+final studentMasterListByStubCodeProvider =
+    FutureProvider.family<List<StudentMasterListDTO>, String>((
+      ref,
+      stubCode,
+    ) async {
+      debugPrint(
+        'studentMasterListByStubCodeProvider called with stubCode: $stubCode',
+      );
+      final repository = ref.watch(studentRepositoryProvider);
+      debugPrint('Fetched StudentRepository: $repository');
+      return await repository.getStudentMasterListByStubCode(stubCode);
     });
