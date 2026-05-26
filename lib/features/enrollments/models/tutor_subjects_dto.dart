@@ -1,9 +1,11 @@
 class TutorSubjectsDTO {
+  final String subjectId;
   final String subjectAssignedId;
   final String stubCode;
   final String subjectName;
 
   TutorSubjectsDTO({
+    required this.subjectId,
     required this.subjectAssignedId,
     required this.stubCode,
     required this.subjectName,
@@ -13,9 +15,10 @@ class TutorSubjectsDTO {
     final subjectData = map['subjects'] as Map<String, dynamic>? ?? {};
 
     return TutorSubjectsDTO(
+      subjectId: subjectData['subject_id'] ?? '',
       subjectAssignedId: map['subject_assigned_id'] ?? '',
       stubCode: map['stub_code'] ?? 'No Stub Code',
-      subjectName: subjectData['subject_name'] as String? ?? 'Unknown Subject'
+      subjectName: subjectData['subject_name'] as String? ?? 'Unknown Subject',
     );
   }
 }

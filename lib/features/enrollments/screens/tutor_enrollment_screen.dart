@@ -121,16 +121,15 @@ class _TutorEnrollmentScreenBodyState
           data: (subjects) {
             _ensureSelectedSubject(subjects);
             final filteredSubjects = _filterSubjects(subjects, _searchQuery);
-            final String selectedLabel;
-            if (subjects.isEmpty) {
-              selectedLabel = 'No assigned subjects';
-            } else {
-              final selectedSubject = subjects.firstWhere(
-                (subject) => subject.stubCode == _selectedStubCode,
-                orElse: () => subjects.first,
-              );
-              selectedLabel = _subjectLabel(selectedSubject);
-            }
+            final selectedSubject = subjects.isEmpty
+                ? null
+                : subjects.firstWhere(
+                    (subject) => subject.stubCode == _selectedStubCode,
+                    orElse: () => subjects.first,
+                  );
+            final selectedLabel = selectedSubject == null
+                ? 'No assigned subjects'
+                : _subjectLabel(selectedSubject);
 
             return ListView(
               padding: const EdgeInsets.all(20),
@@ -299,13 +298,17 @@ class _TutorEnrollmentScreenBodyState
                           ],
                         ),
                         const SizedBox(height: 12),
-                        if (_selectedStubCode == null)
+                        if (_selectedStubCode == null ||
+                            selectedSubject == null)
                           Text(
                             'Select a subject to view students.',
                             style: theme.textTheme.bodyMedium,
                           )
                         else
-                          _StudentListTable(stubCode: _selectedStubCode!),
+                          _StudentListTable(
+                            subjectId: selectedSubject.subjectId,
+                            stubCode: _selectedStubCode!,
+                          ),
                       ],
                     ),
                   ),
@@ -320,14 +323,17 @@ class _TutorEnrollmentScreenBodyState
 }
 
 class _StudentListTable extends ConsumerWidget {
+  final String subjectId;
   final String stubCode;
 
-  const _StudentListTable({required this.stubCode});
+  const _StudentListTable({required this.subjectId, required this.stubCode});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
-    final students = ref.watch(studentMasterListByStubCodeProvider(stubCode));
+    final students = ref.watch(
+      classRosterProvider({'subjectId': subjectId, 'stubCode': stubCode}),
+    );
 
     return students.when(
       loading: () => const AppLoadingScreen(),
@@ -386,16 +392,14 @@ class _StudentListTable extends ConsumerWidget {
               separatorBuilder: (_, __) => const Divider(height: 12),
               itemBuilder: (context, index) {
                 final student = items[index];
-                final studentName = _buildStudentFullName(
-                  student.firstName,
-                  student.middleName,
-                  student.lastName,
-                );
                 return Row(
                   children: [
                     Expanded(
                       flex: 3,
-                      child: Text(studentName, textAlign: TextAlign.center),
+                      child: Text(
+                        student.fullName,
+                        textAlign: TextAlign.center,
+                      ),
                     ),
                     Expanded(
                       flex: 2,
@@ -407,7 +411,7 @@ class _StudentListTable extends ConsumerWidget {
                     Expanded(
                       flex: 2,
                       child: Text(
-                        student.enrollmentStatus,
+                        student.enrollmentStatus.toString(),
                         textAlign: TextAlign.center,
                       ),
                     ),
@@ -420,18 +424,4 @@ class _StudentListTable extends ConsumerWidget {
       },
     );
   }
-}
-
-String _buildStudentFullName(
-  String firstName,
-  String middleName,
-  String lastName,
-) {
-  final parts = <String>[
-    firstName,
-    if (middleName.trim().isNotEmpty) middleName.trim(),
-    lastName,
-  ];
-
-  return parts.join(' ');
 }
