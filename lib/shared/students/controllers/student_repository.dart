@@ -101,7 +101,10 @@ class StudentRepository {
         .from('class_roster_view')
         .select()
         .eq('subject_id', subjectId)
-        .eq('stub_code', stubCode); // 💡 Directly filters alongside subjectId smoothly!
+        .eq(
+          'stub_code',
+          stubCode,
+        ); // 💡 Directly filters alongside subjectId smoothly!
 
     // 2. Map the results cleanly into your flat view DTO array packages
     return response.map((data) => ClassRosterViewDTO.fromMap(data)).toList();
@@ -141,13 +144,20 @@ final studentProfileByDisplayIdProvider =
       return await repository.getStudentProfileByDisplayId(displayId);
     });
 
-final classRosterProvider = FutureProvider.family<List<ClassRosterViewDTO>, Map<String, String>>(
-  (ref, params) async {
-    final subjectId = params['subjectId']!;
-    final stubCode = params['stubCode']!;
-    debugPrint('classRosterProvider called with subjectId: $subjectId, stubCode: $stubCode');
-    final repository = ref.watch(studentRepositoryProvider);
-    debugPrint('Fetched StudentRepository: $repository');
-    return await repository.getClassRoster(subjectId: subjectId, stubCode: stubCode);
-  },
-);
+final classRosterProvider =
+    FutureProvider.family<List<ClassRosterViewDTO>, Map<String, String>>((
+      ref,
+      params,
+    ) async {
+      final subjectId = params['subjectId']!;
+      final stubCode = params['stubCode']!;
+      debugPrint(
+        'classRosterProvider called with subjectId: $subjectId, stubCode: $stubCode',
+      );
+      final repository = ref.watch(studentRepositoryProvider);
+      debugPrint('Fetched StudentRepository: $repository');
+      return await repository.getClassRoster(
+        subjectId: subjectId,
+        stubCode: stubCode,
+      );
+    });

@@ -42,6 +42,7 @@ class EnrollmentRepository {
           subject_assigned_id,
           stub_code,
           subjects (
+            subject_id,
             subject_name
           )
         ''')
