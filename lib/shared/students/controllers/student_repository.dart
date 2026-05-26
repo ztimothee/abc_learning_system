@@ -96,17 +96,15 @@ class StudentRepository {
     required String subjectId,
     required String stubCode,
   }) async {
-    // 1. Query your fresh flat database view layout
+    debugPrint(
+      'getClassRoster called with subjectId: $subjectId, stubCode: $stubCode',
+    );
     final List<Map<String, dynamic>> response = await supabase
         .from('class_roster_view')
         .select()
         .eq('subject_id', subjectId)
-        .eq(
-          'stub_code',
-          stubCode,
-        ); // 💡 Directly filters alongside subjectId smoothly!
-
-    // 2. Map the results cleanly into your flat view DTO array packages
+        .eq('stub_code', stubCode);
+    debugPrint('Raw response from class_roster_view: $response');
     return response.map((data) => ClassRosterViewDTO.fromMap(data)).toList();
   }
 }
@@ -145,12 +143,12 @@ final studentProfileByDisplayIdProvider =
     });
 
 final classRosterProvider =
-    FutureProvider.family<List<ClassRosterViewDTO>, Map<String, String>>((
-      ref,
-      params,
-    ) async {
-      final subjectId = params['subjectId']!;
-      final stubCode = params['stubCode']!;
+    FutureProvider.family<
+      List<ClassRosterViewDTO>,
+      ({String subjectId, String stubCode})
+    >((ref, params) async {
+      final subjectId = params.subjectId;
+      final stubCode = params.stubCode;
       debugPrint(
         'classRosterProvider called with subjectId: $subjectId, stubCode: $stubCode',
       );
