@@ -1,4 +1,5 @@
 import 'package:abc_learning_system/core/services/supabase.dart';
+import 'package:abc_learning_system/shared/students/models/class_roster_view_dto.dart';
 import 'package:abc_learning_system/shared/students/models/student_profile_dto.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -91,30 +92,19 @@ class StudentRepository {
     return StudentProfileDTO.fromMap(response);
   }
 
-  Future<List<StudentProfileDTO>> getStudentsByStubCode(String stubCode) async {
-    debugPrint('getStudentsByStubCode called with stubCode: $stubCode');
-    final response = await supabase
-        .from('student_enrollment_details_view')
-        .select('''
-            enrollment_status,
-            stub_code,
-            students (
-              display_id,
-              profiles (
-                first_name,
-                middle_name,
-                last_name
-              )
-            )
-          ''')
-        .eq('stub_code', stubCode);
+  Future<List<ClassRosterViewDTO>> getClassRoster({
+    required String subjectId,
+    required String stubCode,
+  }) async {
+    // 1. Query your fresh flat database view layout
+    final List<Map<String, dynamic>> response = await supabase
+        .from('class_roster_view')
+        .select()
+        .eq('subject_id', subjectId)
+        .eq('stub_code', stubCode); // 💡 Directly filters alongside subjectId smoothly!
 
-    debugPrint(
-      "Raw response from student_enrollment_details_view for stub_code $stubCode: $response",
-    );
-    return response
-        .map((studentMap) => StudentProfileDTO.fromMap(studentMap))
-        .toList();
+    // 2. Map the results cleanly into your flat view DTO array packages
+    return response.map((data) => ClassRosterViewDTO.fromMap(data)).toList();
   }
 }
 
@@ -151,13 +141,13 @@ final studentProfileByDisplayIdProvider =
       return await repository.getStudentProfileByDisplayId(displayId);
     });
 
-final studentsByStubCodeProvider =
-    FutureProvider.family<List<StudentProfileDTO>, String>((
-      ref,
-      stubCode,
-    ) async {
-      debugPrint('studentsByStubCodeProvider called with stubCode: $stubCode');
-      final repository = ref.watch(studentRepositoryProvider);
-      debugPrint('Fetched StudentRepository: $repository');
-      return await repository.getStudentsByStubCode(stubCode);
-    });
+final classRosterProvider = FutureProvider.family<List<ClassRosterViewDTO>, Map<String, String>>(
+  (ref, params) async {
+    final subjectId = params['subjectId']!;
+    final stubCode = params['stubCode']!;
+    debugPrint('classRosterProvider called with subjectId: $subjectId, stubCode: $stubCode');
+    final repository = ref.watch(studentRepositoryProvider);
+    debugPrint('Fetched StudentRepository: $repository');
+    return await repository.getClassRoster(subjectId: subjectId, stubCode: stubCode);
+  },
+);
