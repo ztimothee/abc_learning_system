@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:shimmer/shimmer.dart';
 
 class AppAssets {
-  static Image logo ({double? width, double? height}) {
+  static Image logo({double? width, double? height}) {
     return Image.asset(
       'assets/images/abclogo.png',
       width: width,
@@ -25,21 +25,100 @@ class AppAssets {
   );
 }
 
-class AppTheme {
-  static const _lightSeed = Color(0xFF2F5BFF);
-  static const _darkSeed = Color(0xFF6C8CFF);
+class AppColorTheme {
+  final String name;
+  final Color light;
+  final Color dark;
 
-  static ThemeData get light {
+  const AppColorTheme({
+    required this.name,
+    required this.light,
+    required this.dark,
+  });
+}
+
+class ColorThemes {
+  static Color get blue => const Color(0xFF2F5BFF);
+  static Color get blueSoft => const Color(0xFF6C8CFF);
+  static Color get green => const Color(0xFF1F8A4C);
+  static Color get greenSoft => const Color(0xFF49B96D);
+  static Color get purple => const Color(0xFF7A4DFF);
+  static Color get purpleSoft => const Color(0xFFA78BFA);
+  static Color get pink => const Color(0xFFFF5FA2);
+  static Color get pinkSoft => const Color(0xFFFF8BC0);
+  static Color get orange => const Color(0xFFFF9A3D);
+  static Color get orangeSoft => const Color(0xFFFFB15C);
+  static Color get yellow => const Color(0xFFF5C542);
+  static Color get yellowSoft => const Color(0xFFFFD86B);
+  static Color get red => const Color(0xFFD93E3E);
+  static Color get redSoft => const Color(0xFFFF6B6B);
+  static Color get teal => const Color(0xFF00A59A);
+  static Color get tealSoft => const Color(0xFF33C7BA);
+  static Color get surfaceLight => const Color(0xFFFFFFFF);
+  static Color get surfaceDark => const Color(0xFF151B27);
+  static Color get backgroundLight => const Color(0xFFF5F6FA);
+  static Color get backgroundDark => const Color(0xFF0E1320);
+  static Color get textDark => const Color(0xFF1D2433);
+  static Color get textLight => const Color(0xFFE7ECF6);
+
+  static AppColorTheme get blueTheme =>
+      AppColorTheme(name: 'Blue', light: blue, dark: blueSoft);
+
+  static AppColorTheme get greenTheme =>
+      AppColorTheme(name: 'Green', light: green, dark: greenSoft);
+
+  static AppColorTheme get purpleTheme =>
+      AppColorTheme(name: 'Purple', light: purple, dark: purpleSoft);
+
+  static AppColorTheme get pinkTheme =>
+      AppColorTheme(name: 'Pink', light: pink, dark: pinkSoft);
+
+  static AppColorTheme get orangeTheme =>
+      AppColorTheme(name: 'Orange', light: orange, dark: orangeSoft);
+
+  static AppColorTheme get yellowTheme =>
+      AppColorTheme(name: 'Yellow', light: yellow, dark: yellowSoft);
+
+  static AppColorTheme get redTheme =>
+      AppColorTheme(name: 'Red', light: red, dark: redSoft);
+
+  static AppColorTheme get tealTheme =>
+      AppColorTheme(name: 'Teal', light: teal, dark: tealSoft);
+
+  static List<AppColorTheme> get availableThemes => <AppColorTheme>[
+    blueTheme,
+    greenTheme,
+    purpleTheme,
+    pinkTheme,
+    orangeTheme,
+    yellowTheme,
+    redTheme,
+    tealTheme,
+  ];
+
+  static Color get defaultTheme => green;
+}
+
+class AppTheme {
+  static AppColorTheme get defaultTheme => ColorThemes.greenTheme;
+
+  static ThemeData light({
+    AppColorTheme theme = const AppColorTheme(
+      name: 'Green',
+      light: Color(0xFF1F8A4C),
+      dark: Color(0xFF49B96D),
+    ),
+  }) {
     final colorScheme =
         ColorScheme.fromSeed(
-          seedColor: _lightSeed,
+          seedColor: theme.light,
           brightness: Brightness.light,
         ).copyWith(
-          primary: const Color(0xFF2F5BFF),
-          secondary: const Color(0xFF00A59A),
-          surface: const Color(0xFFFFFFFF),
-          background: const Color(0xFFF5F6FA),
-          error: const Color(0xFFD93E3E),
+          primary: theme.light,
+          secondary: theme.dark,
+          surface: ColorThemes.surfaceLight,
+          background: ColorThemes.backgroundLight,
+          error: ColorThemes.red,
         );
 
     return ThemeData(
@@ -48,7 +127,7 @@ class AppTheme {
       scaffoldBackgroundColor: colorScheme.background,
       appBarTheme: AppBarTheme(
         backgroundColor: colorScheme.surface,
-        foregroundColor: const Color(0xFF1D2433),
+        foregroundColor: ColorThemes.textDark,
         elevation: 0,
         centerTitle: false,
       ),
@@ -105,17 +184,23 @@ class AppTheme {
     );
   }
 
-  static ThemeData get dark {
+  static ThemeData dark({
+    AppColorTheme theme = const AppColorTheme(
+      name: 'Green',
+      light: Color(0xFF1F8A4C),
+      dark: Color(0xFF49B96D),
+    ),
+  }) {
     final colorScheme =
         ColorScheme.fromSeed(
-          seedColor: _darkSeed,
+          seedColor: theme.dark,
           brightness: Brightness.dark,
         ).copyWith(
-          primary: const Color(0xFF6C8CFF),
-          secondary: const Color(0xFF33C7BA),
-          surface: const Color(0xFF151B27),
-          background: const Color(0xFF0E1320),
-          error: const Color(0xFFFF6B6B),
+          primary: theme.dark,
+          secondary: theme.light,
+          surface: ColorThemes.surfaceDark,
+          background: ColorThemes.backgroundDark,
+          error: ColorThemes.redSoft,
         );
 
     return ThemeData(
@@ -124,7 +209,7 @@ class AppTheme {
       scaffoldBackgroundColor: colorScheme.background,
       appBarTheme: AppBarTheme(
         backgroundColor: colorScheme.surface,
-        foregroundColor: const Color(0xFFE7ECF6),
+        foregroundColor: ColorThemes.textLight,
         elevation: 0,
         centerTitle: false,
       ),

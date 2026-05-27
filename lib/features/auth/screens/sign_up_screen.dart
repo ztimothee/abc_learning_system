@@ -137,16 +137,14 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
       await authService.signUp(loginDTO, profile);
 
       debugPrint('Sign-up successful for email: ${loginDTO.email}');
-    }
-    catch (e) {
+    } catch (e) {
       debugPrint('Sign-up failed: $e');
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Sign-up failed: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Sign-up failed: $e')));
       return;
     }
-
 
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
@@ -259,6 +257,14 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
                           },
                         ),
                         const SizedBox(height: 24),
+                        TextButton.icon(
+                          onPressed: () {
+                            context.push('/settings');
+                          },
+                          icon: const Icon(Icons.palette_outlined),
+                          label: const Text('Theme settings'),
+                        ),
+                        const SizedBox(height: 12),
                         _buildSectionTitle('Profile Details'),
                         Row(
                           children: [

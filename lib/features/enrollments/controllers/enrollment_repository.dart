@@ -119,6 +119,16 @@ class EnrollmentRepository {
     });
   }
 
+  Future<void> batchEnrollStudentInSubjects({
+    required String studentId,
+    required String batchId,
+  }) async {
+    await supabase.rpc('enroll_student_in_batch', params: {
+      'student_id': studentId,
+      'batch_id': batchId,
+    });
+  }
+
   // Set status 0 enrollment to 1 to confirm enrollment, or set it to 0 to cancel enrollment
   Future<void> updateEnrollmentStatus({
     required String enrollmentId,
