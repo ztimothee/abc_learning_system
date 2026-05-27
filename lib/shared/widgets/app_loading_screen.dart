@@ -8,16 +8,18 @@ class AppLoadingScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      body: Center(
+    final theme = Theme.of(context);
+
+    return ColoredBox(
+      color: theme.scaffoldBackgroundColor,
+      child: Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             AppAssets.shimmerLogo,
             if (message != null) ...[
               const SizedBox(height: 16),
-              Text(message!, style: Theme.of(context).textTheme.bodyMedium),
+              Text(message!, style: theme.textTheme.bodyMedium),
             ],
           ],
         ),

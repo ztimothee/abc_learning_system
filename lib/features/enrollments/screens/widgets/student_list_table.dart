@@ -1,4 +1,4 @@
-
+import 'package:abc_learning_system/core/themes/status_map.dart';
 import 'package:abc_learning_system/shared/students/controllers/student_repository.dart';
 import 'package:abc_learning_system/shared/widgets/app_loading_screen.dart';
 import 'package:flutter/material.dart';
@@ -8,7 +8,11 @@ class StudentListTable extends ConsumerWidget {
   final String subjectId;
   final String stubCode;
 
-  const StudentListTable({super.key, required this.subjectId, required this.stubCode});
+  const StudentListTable({
+    super.key,
+    required this.subjectId,
+    required this.stubCode,
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -28,7 +32,21 @@ class StudentListTable extends ConsumerWidget {
       error: (error, stackTrace) =>
           Center(child: Text('Student List Error: $error')),
       data: (items) {
-        if (items.isEmpty) {
+        final sortedItems = [...items]
+          ..sort((left, right) {
+            final leftLastName = _extractLastName(left.fullName);
+            final rightLastName = _extractLastName(right.fullName);
+            final lastNameComparison = leftLastName.compareTo(rightLastName);
+            if (lastNameComparison != 0) {
+              return lastNameComparison;
+            }
+
+            return _displayNameLastFirst(
+              left.fullName,
+            ).compareTo(_displayNameLastFirst(right.fullName));
+          });
+
+        if (sortedItems.isEmpty) {
           return Text(
             'No students found for this subject.',
             style: theme.textTheme.bodyMedium,
@@ -76,17 +94,30 @@ class StudentListTable extends ConsumerWidget {
             ListView.separated(
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
-              itemCount: items.length,
+              itemCount: sortedItems.length,
               separatorBuilder: (_, __) => const Divider(height: 12),
               itemBuilder: (context, index) {
-                final student = items[index];
+                final student = sortedItems[index];
                 return Row(
                   children: [
                     Expanded(
                       flex: 3,
-                      child: Text(
-                        student.fullName,
-                        textAlign: TextAlign.center,
+                      child: Row(
+                        children: [
+                          SizedBox(
+                            width: 28,
+                            child: Text(
+                              '${index + 1}.',
+                              textAlign: TextAlign.left,
+                            ),
+                          ),
+                          Expanded(
+                            child: Text(
+                              _displayNameLastFirst(student.fullName),
+                              textAlign: TextAlign.left,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                     Expanded(
@@ -99,7 +130,7 @@ class StudentListTable extends ConsumerWidget {
                     Expanded(
                       flex: 2,
                       child: Text(
-                        student.enrollmentStatus.toString(),
+                        student.enrollmentStatus.enrollmentStatus,
                         textAlign: TextAlign.center,
                       ),
                     ),
@@ -112,4 +143,28 @@ class StudentListTable extends ConsumerWidget {
       },
     );
   }
+}
+
+String _extractLastName(String fullName) {
+  final parts = fullName.trim().split(RegExp(r'\s+'));
+  if (parts.isEmpty) {
+    return '';
+  }
+
+  return parts.last.toLowerCase();
+}
+
+String _displayNameLastFirst(String fullName) {
+  final parts = fullName.trim().split(RegExp(r'\s+'));
+  if (parts.isEmpty || (parts.length == 1 && parts.first.isEmpty)) {
+    return fullName;
+  }
+
+  if (parts.length == 1) {
+    return parts.first;
+  }
+
+  final lastName = parts.last;
+  final givenNames = parts.sublist(0, parts.length - 1).join(' ');
+  return '$lastName, $givenNames';
 }

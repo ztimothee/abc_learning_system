@@ -123,10 +123,10 @@ class EnrollmentRepository {
     required String studentId,
     required String batchId,
   }) async {
-    await supabase.rpc('enroll_student_in_batch', params: {
-      'student_id': studentId,
-      'batch_id': batchId,
-    });
+    await supabase.rpc(
+      'enroll_student_in_batch',
+      params: {'p_student_id': studentId, 'p_batch_id': batchId},
+    );
   }
 
   // Set status 0 enrollment to 1 to confirm enrollment, or set it to 0 to cancel enrollment
@@ -140,16 +140,17 @@ class EnrollmentRepository {
         .eq('enrollment_id', enrollmentId);
   }
 
-  Future<void> updateEnrollmentStatuses({
+  Future<void> updateMultipleEnrollmentStatus({
     required List<String> enrollmentIds,
     required int newStatus,
   }) async {
-    for (final enrollmentId in enrollmentIds) {
-      await updateEnrollmentStatus(
-        enrollmentId: enrollmentId,
-        newStatus: newStatus,
-      );
-    }
+    if (enrollmentIds.isEmpty) return; // No enrollments to update
+
+    // Do this in only a single query to avoid multiple round trips to the database
+    await supabase
+        .from('enrollments')
+        .update({'status': newStatus})
+        .inFilter('enrollment_id', enrollmentIds);
   }
 }
 
