@@ -2,6 +2,7 @@ import 'package:abc_learning_system/features/accounts_ledgers/screens/faculty_ac
 import 'package:abc_learning_system/features/accounts_ledgers/screens/student_account_ledgers_screen.dart';
 import 'package:abc_learning_system/features/auth/controllers/auth_service.dart';
 import 'package:abc_learning_system/features/auth/screens/login_screen.dart';
+import 'package:abc_learning_system/features/auth/screens/theme_settings_screen.dart';
 import 'package:abc_learning_system/features/auth/screens/sign_up_screen.dart';
 import 'package:abc_learning_system/features/enrollments/screens/staff_enrollment_screen.dart';
 import 'package:abc_learning_system/features/enrollments/screens/student_enrollment_screen.dart';
@@ -25,7 +26,9 @@ final routerProvider = Provider<GoRouter>((ref) {
     initialLocation: '/login',
     redirect: (context, state) {
       final currentRoute = state.matchedLocation;
-      final isLoggingIn = currentRoute == '/login' || currentRoute == '/signup';
+      final isAuthScreen =
+          currentRoute == '/login' || currentRoute == '/signup';
+      final isThemeSettings = currentRoute == '/settings';
 
       if (profileAsync.isLoading) {
         return '/loading';
@@ -38,10 +41,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       final profile = profileAsync.value;
 
       if (profile == null) {
-        return isLoggingIn ? null : '/login';
+        return (isAuthScreen || isThemeSettings) ? null : '/login';
       }
 
-      if (isLoggingIn) {
+      if (isAuthScreen) {
         switch (profile.role) {
           case 'student':
             return '/student/profile';
@@ -72,126 +75,130 @@ final routerProvider = Provider<GoRouter>((ref) {
           return LoginScreen(errorMessage: errorMessage);
         },
       ),
+      GoRoute(path: '/signup', builder: (context, state) => SignUpScreen()),
       GoRoute(
-        path: '/signup',
-        builder: (context, state) => SignUpScreen(),
+        path: '/settings',
+        builder: (context, state) => const ThemeSettingsScreen(),
       ),
 
       // -- STUDENT DASHBOARD ROUTE --
       StatefulShellRoute.indexedStack(
-        builder: (context, state, navigationShell) => StudentDashboardScreen(navigationShell: navigationShell),
+        builder: (context, state, navigationShell) =>
+            StudentDashboardScreen(navigationShell: navigationShell),
         branches: [
           StatefulShellBranch(
             routes: [
               GoRoute(
                 path: '/student/profile',
                 builder: (context, state) => ProfileScreen(),
-              )
-            ]
+              ),
+            ],
           ),
           StatefulShellBranch(
             routes: [
               GoRoute(
                 path: '/student/enrollments',
-                builder:(context, state) => StudentEnrollmentScreen(),
-              )
-            ]
+                builder: (context, state) => StudentEnrollmentScreen(),
+              ),
+            ],
           ),
           StatefulShellBranch(
             routes: [
               GoRoute(
                 path: '/student/records',
-                builder:(context, state) => StudentRecordsScreen(),
-              )
-            ]
+                builder: (context, state) => StudentRecordsScreen(),
+              ),
+            ],
           ),
           StatefulShellBranch(
             routes: [
               GoRoute(
                 path: '/student/accounts',
-                builder:(context, state) => StudentAccountLedgersScreen(),
-              )
-            ]
+                builder: (context, state) => StudentAccountLedgersScreen(),
+              ),
+            ],
           ),
-        ]
+        ],
       ),
 
       // -- TUTOR DASHBOARD ROUTE --
       StatefulShellRoute.indexedStack(
-        builder:(context, state, navigationShell) => TutorDashboardScreen(navigationShell: navigationShell),
+        builder: (context, state, navigationShell) =>
+            TutorDashboardScreen(navigationShell: navigationShell),
         branches: [
           StatefulShellBranch(
             routes: [
               GoRoute(
                 path: '/tutor/profile',
                 builder: (context, state) => ProfileScreen(),
-              )
-            ]
+              ),
+            ],
           ),
           StatefulShellBranch(
             routes: [
               GoRoute(
                 path: '/tutor/enrollments',
-                builder:(context, state) => TutorEnrollmentScreen(),
-              )
-            ]
+                builder: (context, state) => TutorEnrollmentScreen(),
+              ),
+            ],
           ),
           StatefulShellBranch(
             routes: [
               GoRoute(
                 path: '/tutor/records',
-                builder:(context, state) => TutorStudentRecordsScreen(),
-              )
-            ]
+                builder: (context, state) => TutorStudentRecordsScreen(),
+              ),
+            ],
           ),
           StatefulShellBranch(
             routes: [
               GoRoute(
                 path: '/tutor/accounts',
-                builder:(context, state) => StudentAccountLedgersScreen(),
-              )
-            ]
+                builder: (context, state) => FacultyAccountLedgersScreen(),
+              ),
+            ],
           ),
-        ]
+        ],
       ),
 
       // -- STAFF DASHBOARD ROUTE --
       StatefulShellRoute.indexedStack(
-        builder:(context, state, navigationShell) => StaffDashboardScreen(navigationShell: navigationShell),
+        builder: (context, state, navigationShell) =>
+            StaffDashboardScreen(navigationShell: navigationShell),
         branches: [
           StatefulShellBranch(
             routes: [
               GoRoute(
                 path: '/staff/profile',
                 builder: (context, state) => ProfileScreen(),
-              )
-            ]
+              ),
+            ],
           ),
           StatefulShellBranch(
             routes: [
               GoRoute(
                 path: '/staff/enrollments',
-                builder:(context, state) => StaffEnrollmentScreen(),
-              )
-            ]
+                builder: (context, state) => StaffEnrollmentScreen(),
+              ),
+            ],
           ),
           StatefulShellBranch(
             routes: [
               GoRoute(
                 path: '/staff/records',
-                builder:(context, state) => StaffStudentRecordsScreen(),
-              )
-            ]
+                builder: (context, state) => StaffStudentRecordsScreen(),
+              ),
+            ],
           ),
           StatefulShellBranch(
             routes: [
               GoRoute(
                 path: '/staff/accounts',
-                builder:(context, state) => FacultyAccountLedgersScreen(),
-              )
-            ]
+                builder: (context, state) => FacultyAccountLedgersScreen(),
+              ),
+            ],
           ),
-        ]
+        ],
       ),
     ],
   );

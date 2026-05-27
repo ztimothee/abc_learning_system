@@ -1,6 +1,7 @@
 import 'package:abc_learning_system/core/themes/formatting_functions.dart';
 import 'package:abc_learning_system/features/auth/controllers/auth_service.dart';
 import 'package:abc_learning_system/features/auth/models/profile.dart';
+import 'package:abc_learning_system/features/enrollments/controllers/enrollment_operation_controller.dart';
 import 'package:abc_learning_system/features/enrollments/controllers/enrollment_repository.dart';
 import 'package:abc_learning_system/shared/widgets/app_loading_screen.dart';
 import 'package:abc_learning_system/shared/widgets/bordered_list.dart';
@@ -56,11 +57,10 @@ class _StudentEnrollmentScreenBodyState
     if (pendingIds.isEmpty) return;
 
     try {
-      final repository = ref.read(enrollmentRepositoryProvider);
-      await repository.updateEnrollmentStatuses(
-        enrollmentIds: pendingIds,
-        newStatus: 1,
+      final controller = ref.read(
+        enrollmentOperationControllerProvider.notifier,
       );
+      await controller.updateMultipleEnrollmentStatus(pendingIds, 1);
 
       if (!mounted) return;
       setState(() {

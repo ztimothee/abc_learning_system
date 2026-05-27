@@ -103,11 +103,6 @@ final userProfileProvider = FutureProvider<Profile?>((ref) async {
   return Profile.fromMap(fullData);
 });
 
-// final currentUserRoleProvider = FutureProvider<int?>((ref) async {
-//   final profile = await ref.watch(userProfileProvider.future);
-//   return profile?.role.currentRoleValue;
-// });
-
 final currentUserIdProvider = FutureProvider<String>((ref) async {
   final profile = await ref.watch(userProfileProvider.future);
   return profile?.userId ?? '';

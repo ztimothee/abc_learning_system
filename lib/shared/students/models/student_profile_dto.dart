@@ -16,7 +16,7 @@ class StudentProfileDTO {
     return StudentProfileDTO(
       studentId: map['student_id'],
       displayId: map['display_id'],
-      profile: map['profile'] != null ? Profile.fromMap(map['profile']) : null,
+      profile: map['profiles'] != null ? Profile.fromMap(map['profiles']) : null,
     );
   }
 }

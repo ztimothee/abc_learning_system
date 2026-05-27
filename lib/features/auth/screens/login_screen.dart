@@ -8,7 +8,7 @@ import 'package:go_router/go_router.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   final String? errorMessage;
-  
+
   const LoginScreen({super.key, this.errorMessage});
 
   @override
@@ -70,7 +70,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   children: [
                     Align(
                       alignment: Alignment.center,
-                      child: AppAssets.logo(width: 150)
+                      child: AppAssets.logo(width: 150),
                     ), // This is the logo
                     const SizedBox(height: 8),
                     const Text(
@@ -155,7 +155,15 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         ],
                       ),
                       textAlign: TextAlign.center,
-                    )
+                    ),
+                    const SizedBox(height: 8),
+                    TextButton.icon(
+                      onPressed: () {
+                        context.push('/settings');
+                      },
+                      icon: const Icon(Icons.palette_outlined),
+                      label: const Text('Theme settings'),
+                    ),
                   ],
                 ),
               ),

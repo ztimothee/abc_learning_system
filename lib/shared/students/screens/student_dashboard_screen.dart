@@ -66,7 +66,7 @@ class StudentDashboardScreen extends ConsumerWidget {
                         label: 'Settings',
                         icon: Icons.settings,
                         onPressed: () {
-                          // context.go('/settings'); // Uncomment and implement settings route when ready
+                          context.push('/settings'); // Uncomment and implement settings route when ready
                         },
                       ),
                       const SizedBox(height: 8),

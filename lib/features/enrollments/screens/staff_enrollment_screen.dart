@@ -1,3 +1,4 @@
+import 'package:abc_learning_system/features/enrollments/controllers/enrollment_operation_controller.dart';
 import 'package:abc_learning_system/features/enrollments/controllers/enrollment_repository.dart';
 import 'package:abc_learning_system/features/enrollments/models/batched_subjects_dto.dart';
 import 'package:abc_learning_system/features/enrollments/models/enrollment_items_dto.dart';
@@ -20,6 +21,7 @@ class _StaffEnrollmentScreenState extends ConsumerState<StaffEnrollmentScreen> {
   final TextEditingController _displayIdController = TextEditingController();
   String _searchedDisplayId = '';
   List<SubjectDTO> _stagedSubjects = [];
+  final Set<String> _stagedBatchIds = <String>{};
   bool _isAssigningSubjects = false;
 
   @override
@@ -33,11 +35,13 @@ class _StaffEnrollmentScreenState extends ConsumerState<StaffEnrollmentScreen> {
     setState(() {
       _searchedDisplayId = displayId;
       _stagedSubjects = [];
+      _stagedBatchIds.clear();
     });
   }
 
   void _stageBatch(BatchedSubjectsDTO batch) {
     setState(() {
+      _stagedBatchIds.add(batch.batchId);
       final stagedIds = _stagedSubjects
           .map((subject) => subject.subjectId)
           .toSet();
@@ -54,7 +58,7 @@ class _StaffEnrollmentScreenState extends ConsumerState<StaffEnrollmentScreen> {
   }
 
   Future<void> _assignStagedSubjects(String studentId) async {
-    if (_stagedSubjects.isEmpty || _isAssigningSubjects) {
+    if (_stagedBatchIds.isEmpty || _isAssigningSubjects) {
       return;
     }
 
@@ -63,18 +67,25 @@ class _StaffEnrollmentScreenState extends ConsumerState<StaffEnrollmentScreen> {
     });
 
     try {
-      final repository = ref.read(enrollmentRepositoryProvider);
-      for (final subject in _stagedSubjects) {
-        await repository.enrollStudentInSubject(
-          studentId: studentId,
-          subjectId: subject.subjectId,
-        );
+      final controller = ref.read(
+        enrollmentOperationControllerProvider.notifier,
+      );
+      for (final batchId in _stagedBatchIds) {
+        await controller.batchEnrollStudentInSubjects(studentId, batchId);
       }
 
       if (mounted) {
         setState(() {
           _stagedSubjects = [];
+          _stagedBatchIds.clear();
         });
+      }
+    } catch (e) {
+      debugPrint('Error enrolling subjects: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error enrolling subjects: $e')));
       }
     } finally {
       if (mounted) {
@@ -126,6 +137,102 @@ class _StaffEnrollmentScreenState extends ConsumerState<StaffEnrollmentScreen> {
               ),
             ),
             const SizedBox(height: 20),
+            if (trimmedDisplayId.isNotEmpty)
+              studentProfileAsync!.when(
+                loading: () => Padding(
+                  padding: const EdgeInsets.only(bottom: 20),
+                  child: BorderedSurface(
+                    backgroundColor: theme.colorScheme.surfaceContainerHighest,
+                    child: const Padding(
+                      padding: EdgeInsets.all(16),
+                      child: Row(
+                        children: [
+                          SizedBox(
+                            height: 18,
+                            width: 18,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          ),
+                          SizedBox(width: 12),
+                          Text('Loading student details...'),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+                error: (error, stackTrace) => Padding(
+                  padding: const EdgeInsets.only(bottom: 20),
+                  child: BorderedSurface(
+                    backgroundColor: theme.colorScheme.errorContainer,
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Text(
+                        'Student search error: $error',
+                        style: theme.textTheme.bodyMedium,
+                      ),
+                    ),
+                  ),
+                ),
+                data: (studentProfile) {
+                  final profile = studentProfile.profile;
+                  final fullName = [
+                    profile?.firstName ?? '',
+                    profile?.middleName ?? '',
+                    profile?.lastName ?? '',
+                  ].where((part) => part.trim().isNotEmpty).join(' ');
+
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 20),
+                    child: BorderedSurface(
+                      backgroundColor:
+                          theme.colorScheme.surfaceContainerHighest,
+                      child: Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Student Name',
+                                    style: theme.textTheme.labelMedium,
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    fullName.isEmpty
+                                        ? 'Unnamed student'
+                                        : fullName,
+                                    style: theme.textTheme.titleMedium
+                                        ?.copyWith(fontWeight: FontWeight.w600),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Display ID',
+                                    style: theme.textTheme.labelMedium,
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    studentProfile.displayId,
+                                    style: theme.textTheme.titleMedium
+                                        ?.copyWith(fontWeight: FontWeight.w600),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              ),
             if (trimmedDisplayId.isEmpty)
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -236,7 +343,7 @@ class _StaffEnrollmentScreenState extends ConsumerState<StaffEnrollmentScreen> {
                             width: double.infinity,
                             child: FilledButton(
                               onPressed:
-                                  _stagedSubjects.isEmpty ||
+                                  _stagedBatchIds.isEmpty ||
                                       _isAssigningSubjects
                                   ? null
                                   : () => _assignStagedSubjects(
