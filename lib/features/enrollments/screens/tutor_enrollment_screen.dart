@@ -4,8 +4,11 @@ import 'package:abc_learning_system/features/auth/models/profile.dart';
 import 'package:abc_learning_system/features/enrollments/controllers/enrollment_repository.dart';
 import 'package:abc_learning_system/features/enrollments/models/tutor_subjects_dto.dart';
 import 'package:abc_learning_system/features/enrollments/screens/widgets/student_list_table.dart';
+import 'package:abc_learning_system/shared/widgets/bordered_list.dart';
 import 'package:abc_learning_system/shared/tutors/controllers/tutor_repository.dart';
 import 'package:abc_learning_system/shared/widgets/app_loading_screen.dart';
+import 'package:abc_learning_system/shared/widgets/bulleted_instructions_card.dart';
+import 'package:abc_learning_system/shared/widgets/bordered_surface.dart';
 import 'package:abc_learning_system/shared/widgets/info_row.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -49,37 +52,7 @@ class TutorEnrollmentScreenBody extends ConsumerStatefulWidget {
 
 class _TutorEnrollmentScreenBodyState
     extends ConsumerState<TutorEnrollmentScreenBody> {
-  String _searchQuery = '';
-  String? _selectedStubCode;
-
-  String _subjectLabel(TutorSubjectsDTO subject) {
-    final subjectName = subject.subjectName;
-    final stubCode = subject.stubCode;
-    return '$subjectName - $stubCode';
-  }
-
-  List<TutorSubjectsDTO> _filterSubjects(
-    List<TutorSubjectsDTO> subjects,
-    String query,
-  ) {
-    final trimmed = query.trim().toLowerCase();
-    if (trimmed.isEmpty) return subjects;
-    return subjects
-        .where(
-          (subject) => _subjectLabel(subject).toLowerCase().contains(trimmed),
-        )
-        .toList();
-  }
-
-  void _ensureSelectedSubject(List<TutorSubjectsDTO> subjects) {
-    if (_selectedStubCode != null || subjects.isEmpty) return;
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) return;
-      setState(() {
-        _selectedStubCode = subjects.first.stubCode;
-      });
-    });
-  }
+  TutorSubjectsDTO? _selectedSubject;
 
   @override
   Widget build(BuildContext context) {
@@ -113,18 +86,6 @@ class _TutorEnrollmentScreenBodyState
           error: (error, stackTrace) =>
               Center(child: Text('Subject List Error: $error')),
           data: (subjects) {
-            _ensureSelectedSubject(subjects);
-            final filteredSubjects = _filterSubjects(subjects, _searchQuery);
-            final selectedSubject = subjects.isEmpty
-                ? null
-                : subjects.firstWhere(
-                    (subject) => subject.stubCode == _selectedStubCode,
-                    orElse: () => subjects.first,
-                  );
-            final selectedLabel = selectedSubject == null
-                ? 'No assigned subjects'
-                : _subjectLabel(selectedSubject);
-
             return ListView(
               padding: const EdgeInsets.all(20),
               children: [
@@ -152,160 +113,73 @@ class _TutorEnrollmentScreenBodyState
                   ),
                 ),
                 const SizedBox(height: 20),
-                Card(
-                  elevation: 0,
-                  color: theme.colorScheme.primaryContainer,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Subject List',
-                          style: theme.textTheme.titleMedium,
-                        ),
-                        const SizedBox(height: 12),
-                        if (subjects.isEmpty)
-                          Text(
-                            'No subjects assigned yet.',
-                            style: theme.textTheme.bodyMedium,
-                          )
-                        else
-                          ListView.separated(
-                            shrinkWrap: true,
-                            physics: const NeverScrollableScrollPhysics(),
-                            itemCount: subjects.length,
-                            separatorBuilder: (_, __) =>
-                                const Divider(height: 16),
-                            itemBuilder: (context, index) {
-                              final subject = subjects[index];
-                              final label = _subjectLabel(subject);
-                              final isSelected =
-                                  subject.stubCode == _selectedStubCode;
-
-                              return ListTile(
-                                contentPadding: EdgeInsets.zero,
-                                title: Text(label),
-                                trailing: isSelected
-                                    ? Icon(
-                                        Icons.check_circle,
-                                        color: theme.colorScheme.primary,
-                                      )
-                                    : null,
-                                onTap: () {
-                                  setState(() {
-                                    _selectedStubCode = subject.stubCode;
-                                  });
-                                },
-                              );
-                            },
-                          ),
-                      ],
-                    ),
-                  ),
+                BulletedInstructionsCard(
+                  title: 'How to view class roster:',
+                  instructions: [
+                    'Tap subjects in the Assigned Subjects list to load their rosters.',
+                    'The roster will display all students enrolled in that subject, along with their enrollment status.',
+                    'Enrollment status codes: 0 = Admin-Assigned, 1 = Confirmed, 2 = Paid.',
+                  ],
                 ),
                 const SizedBox(height: 20),
-                Card(
-                  elevation: 0,
-                  color: theme.colorScheme.surface,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Student Lists',
-                          style: theme.textTheme.titleMedium,
-                        ),
-                        const SizedBox(height: 12),
-                        TextField(
-                          decoration: const InputDecoration(
-                            prefixIcon: Icon(Icons.search),
-                            hintText: 'Search subject name - stub code',
-                            border: OutlineInputBorder(),
-                            isDense: true,
-                          ),
-                          onChanged: (value) {
-                            setState(() {
-                              _searchQuery = value;
-                            });
-                          },
-                        ),
-                        const SizedBox(height: 12),
-                        if (_searchQuery.trim().isNotEmpty)
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'Matching Subjects',
-                                style: theme.textTheme.labelLarge,
-                              ),
-                              const SizedBox(height: 8),
-                              if (filteredSubjects.isEmpty)
-                                Text(
-                                  'No subjects match the search.',
-                                  style: theme.textTheme.bodySmall,
-                                )
-                              else
-                                ListView.separated(
-                                  shrinkWrap: true,
-                                  physics: const NeverScrollableScrollPhysics(),
-                                  itemCount: filteredSubjects.length,
-                                  separatorBuilder: (_, __) =>
-                                      const Divider(height: 12),
-                                  itemBuilder: (context, index) {
-                                    final subject = filteredSubjects[index];
-                                    return ListTile(
-                                      contentPadding: EdgeInsets.zero,
-                                      title: Text(_subjectLabel(subject)),
-                                      onTap: () {
-                                        setState(() {
-                                          _selectedStubCode = subject.stubCode;
-                                        });
-                                      },
-                                    );
-                                  },
-                                ),
-                              const SizedBox(height: 12),
-                            ],
-                          ),
-                        Row(
-                          children: [
-                            Text(
-                              'Selected Subject:',
-                              style: theme.textTheme.labelLarge,
-                            ),
-                            const SizedBox(width: 8),
-                            Expanded(
-                              child: Text(
-                                selectedLabel,
-                                style: theme.textTheme.bodyMedium,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 12),
-                        if (_selectedStubCode == null ||
-                            selectedSubject == null)
-                          Text(
-                            'Select a subject to view students.',
-                            style: theme.textTheme.bodyMedium,
-                          )
-                        else
-                          StudentListTable(
-                            subjectId: selectedSubject.subjectId,
-                            stubCode: _selectedStubCode!,
-                          ),
-                      ],
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    BorderedListView(
+                      title: 'Assigned Subjects',
+                      items: subjects,
+                      onItemTap: (index) {
+                        setState(() {
+                          _selectedSubject = subjects[index];
+                        });
+                      },
                     ),
-                  ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      flex: 3,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          BorderedSurface(
+                            padding: const EdgeInsets.symmetric(
+                              vertical: 12,
+                              horizontal: 8,
+                            ),
+                            child: SizedBox(
+                              width: double.infinity,
+                              child: Text(
+                                'Class Roster',
+                                style: theme.textTheme.labelLarge?.copyWith(
+                                  fontWeight: FontWeight.w600,
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
+                            ),
+                          ),
+                          if (_selectedSubject == null)
+                            BorderedSurface(
+                              backgroundColor:
+                                  theme.colorScheme.surfaceContainerHighest,
+                              padding: const EdgeInsets.all(16),
+                              child: SizedBox(
+                                width: double.infinity,
+                                child: Text(
+                                  'Select a subject to display the respective class roster',
+                                  style: theme.textTheme.bodyMedium,
+                                  textAlign: TextAlign.center,
+                                ),
+                              ),
+                            )
+                          else
+                            StudentListTable(
+                              subjectId: _selectedSubject!.subjectId,
+                              stubCode: _selectedSubject!.stubCode,
+                            ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
               ],
             );
