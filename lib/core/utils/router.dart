@@ -148,7 +148,7 @@ final routerProvider = Provider<GoRouter>((ref) {
             routes: [
               GoRoute(
                 path: '/tutor/accounts',
-                builder:(context, state) => FacultyAccountLedgersScreen(),
+                builder:(context, state) => StudentAccountLedgersScreen(),
               )
             ]
           ),
