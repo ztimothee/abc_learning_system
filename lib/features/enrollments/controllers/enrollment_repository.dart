@@ -164,3 +164,10 @@ final tutorAssignedSubjectsProvider =
       final repository = ref.watch(enrollmentRepositoryProvider);
       return repository.getAssignedSubjectsForTutorByTutorId(tutorId);
     });
+
+final allBatchedSubjectsProvider = FutureProvider<List<BatchedSubjectsDTO>>((
+  ref,
+) async {
+  final repository = ref.watch(enrollmentRepositoryProvider);
+  return repository.getAllBatchedSubjects();
+});
