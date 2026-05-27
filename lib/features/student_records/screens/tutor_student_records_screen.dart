@@ -62,7 +62,7 @@ class _TutorStudentRecordsScreenState extends State<TutorStudentRecordsScreen> {
                                 child: _SelectableSubjectList(
                                   subjects: _controller.subjects,
                                   selectedSubjectCode:
-                                      _controller.selectedSubject?.subjectCode,
+                                      _controller.selectedSubject.subjectCode,
                                   onSelected: _controller.selectSubject,
                                 ),
                               );
