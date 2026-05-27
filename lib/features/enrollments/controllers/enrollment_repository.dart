@@ -158,3 +158,16 @@ final studentEnrollmentSummaryProvider =
       debugPrint('EnrollmentRepository instance: $repository');
       return await repository.getEnrollmentsForStudent(studentId);
     });
+
+final tutorAssignedSubjectsProvider =
+    FutureProvider.family<List<TutorSubjectsDTO>, String>((ref, tutorId) async {
+      final repository = ref.watch(enrollmentRepositoryProvider);
+      return repository.getAssignedSubjectsForTutorByTutorId(tutorId);
+    });
+
+final allBatchedSubjectsProvider = FutureProvider<List<BatchedSubjectsDTO>>((
+  ref,
+) async {
+  final repository = ref.watch(enrollmentRepositoryProvider);
+  return repository.getAllBatchedSubjects();
+});

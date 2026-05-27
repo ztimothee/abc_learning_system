@@ -2,9 +2,9 @@ import 'package:abc_learning_system/core/themes/formatting_functions.dart';
 import 'package:abc_learning_system/features/auth/controllers/auth_service.dart';
 import 'package:abc_learning_system/features/auth/models/profile.dart';
 import 'package:abc_learning_system/features/enrollments/controllers/enrollment_repository.dart';
-import 'package:abc_learning_system/features/enrollments/models/enrollment_items_dto.dart';
 import 'package:abc_learning_system/shared/widgets/app_loading_screen.dart';
-import 'package:abc_learning_system/shared/widgets/custom_ink_well_list.dart';
+import 'package:abc_learning_system/shared/widgets/bordered_list.dart';
+import 'package:abc_learning_system/shared/widgets/bulleted_instructions_card.dart';
 import 'package:abc_learning_system/shared/widgets/info_row.dart';
 import 'package:abc_learning_system/shared/students/controllers/student_repository.dart';
 import 'package:flutter/material.dart';
@@ -155,79 +155,29 @@ class _StudentEnrollmentScreenBodyState
                   ),
                 ),
                 const SizedBox(height: 20),
-                Card(
-                  elevation: 0,
-                  color: theme.colorScheme.primaryContainer,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'How to add subjects:',
-                          style: theme.textTheme.titleSmall,
-                        ),
-                        const SizedBox(height: 8),
-                        Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text('• ', style: TextStyle(fontSize: 16)),
-                            Expanded(
-                              child: Text(
-                                'Tap subjects in the Assigned Subjects list to stage them for enrollment.',
-                                style: theme.textTheme.bodyMedium,
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 6),
-                        Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text('• ', style: TextStyle(fontSize: 16)),
-                            Expanded(
-                              child: Text(
-                                'Review staged subjects in the Enrolled Subjects panel on the right.',
-                                style: theme.textTheme.bodyMedium,
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 6),
-                        Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text('• ', style: TextStyle(fontSize: 16)),
-                            Expanded(
-                              child: Text(
-                                'When ready, tap the "Add Selected Subjects" button to confirm enrollment.',
-                                style: theme.textTheme.bodyMedium,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
+                BulletedInstructionsCard(
+                  title: 'Enrollment Instructions',
+                  instructions: [
+                    'Tap subjects in the Assigned Subjects list to stage them for enrollment.',
+                    'Review staged subjects in the Staged Subjects panel in the middle.',
+                    'When ready, tap the "Add Selected Subjects" button to confirm enrollment.',
+                  ],
                 ),
                 const SizedBox(height: 20),
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     // Assigned Subjects
-                    Expanded(
-                      child: _EnrollmentSection(
-                        title: 'Assigned Subjects',
-                        items: assignedSubjects,
-                        onItemTap: (enrollment) {
-                          setState(() {
-                            _pendingEnrollmentIds.add(enrollment.enrollmentId);
-                          });
-                        },
-                      ),
+                    BorderedListView(
+                      title: 'Assigned Subjects',
+                      items: assignedSubjects,
+                      onItemTap: (index) {
+                        setState(() {
+                          _pendingEnrollmentIds.add(
+                            assignedSubjects[index].enrollmentId,
+                          );
+                        });
+                      },
                     ),
                     const SizedBox(width: 12),
 
@@ -236,14 +186,15 @@ class _StudentEnrollmentScreenBodyState
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          _EnrollmentSection(
+                          BorderedListView(
                             title: 'Staged Subjects',
                             items: enrolledSubjects,
-                            onItemTap: (enrollment) {
+                            expand: false,
+                            onItemTap: (index) {
                               // toggle staging: tapping staged removes it
                               setState(() {
                                 _pendingEnrollmentIds.remove(
-                                  enrollment.enrollmentId,
+                                  enrolledSubjects[index].enrollmentId,
                                 );
                               });
                             },
@@ -271,14 +222,12 @@ class _StudentEnrollmentScreenBodyState
                     const SizedBox(width: 12),
 
                     // Confirmed Subjects (status == 1)
-                    Expanded(
-                      child: _EnrollmentSection(
-                        title: 'Confirmed Subjects',
-                        items: summary.enrollments
-                            .where((e) => e.enrollmentStatus == 1)
-                            .toList(),
-                        onItemTap: null, // unclickable
-                      ),
+                    BorderedListView(
+                      title: 'Confirmed Subjects',
+                      items: summary.enrollments
+                          .where((e) => e.enrollmentStatus == 1)
+                          .toList(),
+                      onItemTap: null, // unclickable
                     ),
                   ],
                 ),
@@ -287,83 +236,6 @@ class _StudentEnrollmentScreenBodyState
           },
         );
       },
-    );
-  }
-}
-
-class _EnrollmentSection extends StatelessWidget {
-  final String title;
-  final List<EnrollmentItemsDTO> items;
-  final ValueChanged<EnrollmentItemsDTO>? onItemTap;
-
-  const _EnrollmentSection({
-    required this.title,
-    required this.items,
-    this.onItemTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(title, style: theme.textTheme.titleMedium),
-        const SizedBox(height: 12),
-        Container(
-          decoration: BoxDecoration(
-            color: theme.colorScheme.surfaceContainerHighest,
-            border: Border.all(
-              color: theme.colorScheme.outlineVariant,
-              width: 1,
-            ),
-          ),
-          child: items.isEmpty
-              ? Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: SizedBox(
-                    width: double.infinity,
-                    child: Text(
-                      'No subjects found.',
-                      style: theme.textTheme.bodyMedium,
-                    ),
-                  ),
-                )
-              : CustomInkWellList(
-                  onChildTap: (index) {
-                    if (onItemTap == null) {
-                      return;
-                    }
-
-                    onItemTap!(items[index]);
-                  },
-                  children: items
-                      .map(
-                        (enrollment) => Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 4),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                enrollment.subjectName,
-                                style: theme.textTheme.bodyMedium?.copyWith(
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                '${enrollment.stubCode} • ${enrollment.formattedSchedule}',
-                                style: theme.textTheme.bodySmall,
-                              ),
-                            ],
-                          ),
-                        ),
-                      )
-                      .toList(),
-                ),
-        ),
-      ],
     );
   }
 }
