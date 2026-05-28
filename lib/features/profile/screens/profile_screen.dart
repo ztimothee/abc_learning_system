@@ -50,14 +50,14 @@ class _ProfileBody extends ConsumerWidget {
     );
     final initials = buildInitials(profile);
     const schoolYear = 'SY 2026-2027';
-    final enrollmentStatus = profile.role.currentRoleValue == 0
+    final enrollmentStatus = profile.role.currentRoleInt == 0
         ? 'Enrolled'
-        : profile.role.currentRoleValue == 1
+        : profile.role.currentRoleInt == 1
         ? 'Teaching'
-        : profile.role.currentRoleValue == 2
+        : profile.role.currentRoleInt == 2
         ? 'Admin'
         : 'N/A';
-    final currentRole = profile.role.currentRoleValue;
+    final currentRole = profile.role.currentRoleInt;
     final userId = profile.userId;
     final idLabel = currentRole == 0
         ? 'Student ID'
@@ -171,7 +171,7 @@ class _ProfileBody extends ConsumerWidget {
                 ),
                 InfoRow(
                   label: 'Civil Status',
-                  value: profile.civilStatus.civilStatus,
+                  value: profile.civilStatus.civilStatusString,
                 ),
                 InfoRow(label: 'Contact', value: profile.contactNumber),
                 InfoRow(label: 'Address', value: profile.address),

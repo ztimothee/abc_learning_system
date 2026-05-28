@@ -122,7 +122,7 @@ class StudentListTable extends ConsumerWidget {
                     Expanded(
                       flex: 2,
                       child: Text(
-                        student.enrollmentStatus.enrollmentStatus,
+                        student.enrollmentStatus.enrollmentStatusString,
                         textAlign: TextAlign.center,
                       ),
                     ),
