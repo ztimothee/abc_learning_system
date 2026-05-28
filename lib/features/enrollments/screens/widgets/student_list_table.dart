@@ -34,16 +34,8 @@ class StudentListTable extends ConsumerWidget {
       data: (items) {
         final sortedItems = [...items]
           ..sort((left, right) {
-            final leftLastName = _extractLastName(left.fullName);
-            final rightLastName = _extractLastName(right.fullName);
-            final lastNameComparison = leftLastName.compareTo(rightLastName);
-            if (lastNameComparison != 0) {
-              return lastNameComparison;
-            }
-
-            return _displayNameLastFirst(
-              left.fullName,
-            ).compareTo(_displayNameLastFirst(right.fullName));
+            // Use the already-formatted fullName from ClassRosterViewDTO
+            return left.fullName.compareTo(right.fullName);
           });
 
         if (sortedItems.isEmpty) {
@@ -113,7 +105,7 @@ class StudentListTable extends ConsumerWidget {
                           ),
                           Expanded(
                             child: Text(
-                              _displayNameLastFirst(student.fullName),
+                              student.fullName,
                               textAlign: TextAlign.left,
                             ),
                           ),
@@ -143,28 +135,4 @@ class StudentListTable extends ConsumerWidget {
       },
     );
   }
-}
-
-String _extractLastName(String fullName) {
-  final parts = fullName.trim().split(RegExp(r'\s+'));
-  if (parts.isEmpty) {
-    return '';
-  }
-
-  return parts.last.toLowerCase();
-}
-
-String _displayNameLastFirst(String fullName) {
-  final parts = fullName.trim().split(RegExp(r'\s+'));
-  if (parts.isEmpty || (parts.length == 1 && parts.first.isEmpty)) {
-    return fullName;
-  }
-
-  if (parts.length == 1) {
-    return parts.first;
-  }
-
-  final lastName = parts.last;
-  final givenNames = parts.sublist(0, parts.length - 1).join(' ');
-  return '$lastName, $givenNames';
 }

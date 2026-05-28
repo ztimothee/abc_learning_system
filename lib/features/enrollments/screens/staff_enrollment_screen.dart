@@ -173,11 +173,10 @@ class _StaffEnrollmentScreenState extends ConsumerState<StaffEnrollmentScreen> {
                   ),
                 ),
                 data: (studentProfile) {
-                  final profile = studentProfile.profile;
                   final fullName = [
-                    profile?.firstName ?? '',
-                    profile?.middleName ?? '',
-                    profile?.lastName ?? '',
+                    studentProfile.firstName,
+                    studentProfile.middleName ?? '',
+                    studentProfile.lastName,
                   ].where((part) => part.trim().isNotEmpty).join(' ');
 
                   return Padding(

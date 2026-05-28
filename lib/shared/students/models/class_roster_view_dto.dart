@@ -1,3 +1,5 @@
+import 'package:abc_learning_system/core/themes/formatting_functions.dart';
+
 class ClassRosterViewDTO {
   final String enrollmentId;
   final int enrollmentStatus;
@@ -20,13 +22,11 @@ class ClassRosterViewDTO {
   });
 
   factory ClassRosterViewDTO.fromMap(Map<String, dynamic> map) {
-    // 💡 Step 1: Name assembly directly from the root keys of the view row
     final firstName = map['first_name'] ?? '';
     final middleName = map['middle_name'] != null ? '${map['middle_name']} ' : '';
     final lastName = map['last_name'] ?? '';
-    final combinedName = '$firstName $middleName$lastName'.trim();
+    final combinedName = buildFullNameSurnameFirst(firstName, middleName, lastName);
 
-    // 💡 Step 2: Map properties directly from the flat layout
     return ClassRosterViewDTO(
       enrollmentId: map['enrollment_id'] ?? '',
       enrollmentStatus: map['status'] ?? 0,

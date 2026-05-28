@@ -2,6 +2,9 @@ import 'package:abc_learning_system/core/themes/formatting_functions.dart';
 import 'package:abc_learning_system/core/themes/status_map.dart';
 import 'package:abc_learning_system/features/auth/controllers/auth_service.dart';
 import 'package:abc_learning_system/features/auth/models/profile.dart';
+import 'package:abc_learning_system/shared/staffs/controllers/staff_repository.dart';
+import 'package:abc_learning_system/shared/students/controllers/student_repository.dart';
+import 'package:abc_learning_system/shared/tutors/controllers/tutor_repository.dart';
 import 'package:abc_learning_system/shared/widgets/app_loading_screen.dart';
 import 'package:abc_learning_system/shared/widgets/info_row.dart';
 import 'package:flutter/material.dart';
@@ -40,7 +43,11 @@ class _ProfileBody extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
-    final fullName = buildFullName(profile);
+    final fullName = buildFullNameSurnameFirst(
+      profile.firstName,
+      profile.middleName,
+      profile.lastName,
+    );
     final initials = buildInitials(profile);
     const schoolYear = 'SY 2026-2027';
     final enrollmentStatus = profile.role.currentRoleValue == 0
@@ -51,6 +58,38 @@ class _ProfileBody extends ConsumerWidget {
         ? 'Admin'
         : 'N/A';
     final currentRole = profile.role.currentRoleValue;
+    final userId = profile.userId;
+    final idLabel = currentRole == 0
+        ? 'Student ID'
+        : currentRole == 1
+        ? 'Teacher ID'
+        : currentRole == 2
+        ? 'Admin ID'
+        : 'User ID';
+
+    AsyncValue<String?> displayIdAsync = const AsyncValue.data(null);
+    if (userId != null && userId.isNotEmpty) {
+      if (currentRole == 0) {
+        displayIdAsync = ref
+            .watch(studentProfileByUserIdProvider(userId))
+            .whenData((student) => student.displayId);
+      } else if (currentRole == 1) {
+        displayIdAsync = ref
+            .watch(tutorProfileByUserIdProvider(userId))
+            .whenData((tutor) => tutor.displayId);
+      } else if (currentRole == 2) {
+        displayIdAsync = ref
+            .watch(staffProfileByUserIdProvider(userId))
+            .whenData((staff) => staff?.displayId);
+      }
+    }
+
+    final idValue = displayIdAsync.when(
+      data: (displayId) =>
+          (displayId != null && displayId.isNotEmpty) ? displayId : 'N/A',
+      loading: () => 'Loading...',
+      error: (_, _) => 'N/A',
+    );
 
     return ListView(
       padding: const EdgeInsets.all(20),
@@ -124,14 +163,7 @@ class _ProfileBody extends ConsumerWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                if (currentRole == 0)
-                  InfoRow(label: 'Student ID', value: profile.userId ?? 'N/A')
-                else if (currentRole == 1)
-                  InfoRow(label: 'Teacher ID', value: profile.userId ?? 'N/A')
-                else if (currentRole == 2)
-                  InfoRow(label: 'Admin ID', value: profile.userId ?? 'N/A')
-                else
-                  InfoRow(label: 'User ID', value: profile.userId ?? 'N/A'),
+                InfoRow(label: idLabel, value: idValue),
                 InfoRow(label: 'Gender', value: profile.gender),
                 InfoRow(
                   label: 'Date of Birth',

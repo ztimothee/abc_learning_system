@@ -9,7 +9,7 @@ import 'package:abc_learning_system/shared/tutors/controllers/tutor_repository.d
 import 'package:abc_learning_system/shared/widgets/app_loading_screen.dart';
 import 'package:abc_learning_system/shared/widgets/bulleted_instructions_card.dart';
 import 'package:abc_learning_system/shared/widgets/bordered_surface.dart';
-import 'package:abc_learning_system/shared/widgets/info_row.dart';
+import 'package:abc_learning_system/shared/widgets/header_card.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -58,7 +58,11 @@ class _TutorEnrollmentScreenBodyState
   Widget build(BuildContext context) {
     final profile = widget.profile;
     final theme = Theme.of(context);
-    final fullName = buildFullName(profile);
+    final fullName = buildFullNameSurnameFirst(
+      profile.firstName,
+      profile.middleName,
+      profile.lastName,
+    );
     final userId = profile.userId;
 
     if (userId == null || userId.isEmpty) {
@@ -95,22 +99,10 @@ class _TutorEnrollmentScreenBodyState
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 20),
-                Card(
-                  elevation: 0,
-                  color: theme.colorScheme.surfaceContainerHighest,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        InfoRow(label: 'Teacher ID', value: userId),
-                        InfoRow(label: 'Teacher Name', value: fullName),
-                      ],
-                    ),
-                  ),
+                HeaderCard(
+                  title: 'Tutor Information',
+                  id: tutor.displayId,
+                  name: fullName,
                 ),
                 const SizedBox(height: 20),
                 BulletedInstructionsCard(
@@ -118,7 +110,7 @@ class _TutorEnrollmentScreenBodyState
                   instructions: [
                     'Tap subjects in the Assigned Subjects list to load their rosters.',
                     'The roster will display all students enrolled in that subject, along with their enrollment status.',
-                    'Enrollment status codes: 0 = Admin-Assigned, 1 = Confirmed, 2 = Paid.',
+                    'Enrollment status is updated based on the student\'s enrollment activity and may take a moment to reflect changes.',
                   ],
                 ),
                 const SizedBox(height: 20),

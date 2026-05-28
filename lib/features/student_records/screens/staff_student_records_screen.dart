@@ -1,3 +1,4 @@
+import 'package:abc_learning_system/shared/widgets/header_card.dart';
 import 'package:flutter/material.dart';
 
 class StaffStudentRecordsScreen extends StatefulWidget {
@@ -46,9 +47,10 @@ class _StaffStudentRecordsScreenState extends State<StaffStudentRecordsScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        _StaffHeaderCard(
-                          studentId: _controller.selectedStudent.studentId,
-                          studentName: _controller.selectedStudent.fullName,
+                        HeaderCard(
+                          title: 'Staff Student Records',
+                          id: _controller.selectedStudent.studentId,
+                          name: _controller.selectedStudent.fullName,
                         ),
                         const SizedBox(height: 16),
                         _SearchBarCard(
@@ -250,76 +252,6 @@ class _StudentRecord {
   final String subject;
   final String grade;
   final String remarks;
-}
-
-class _StaffHeaderCard extends StatelessWidget {
-  const _StaffHeaderCard({required this.studentId, required this.studentName});
-
-  final String studentId;
-  final String studentName;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [Color(0xFF0F172A), Color(0xFF1D4ED8)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(24),
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x1F0F172A),
-            blurRadius: 24,
-            offset: Offset(0, 14),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 56,
-            height: 56,
-            decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.14),
-              borderRadius: BorderRadius.circular(18),
-            ),
-            child: const Icon(
-              Icons.badge_outlined,
-              color: Colors.white,
-              size: 30,
-            ),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Staff Student Records',
-                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w800,
-                  ),
-                ),
-                const SizedBox(height: 10),
-                Wrap(
-                  spacing: 18,
-                  runSpacing: 12,
-                  children: [
-                    _InfoChip(label: 'Student ID', value: studentId),
-                    _InfoChip(label: 'Student Name', value: studentName),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 }
 
 class _SearchBarCard extends StatelessWidget {
@@ -554,46 +486,6 @@ class _DetailField extends StatelessWidget {
               style: Theme.of(
                 context,
               ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _InfoChip extends StatelessWidget {
-  const _InfoChip({required this.label, required this.value});
-
-  final String label;
-  final String value;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.13),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.18)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(
-            label,
-            style: Theme.of(context).textTheme.labelSmall?.copyWith(
-              color: Colors.white70,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            value,
-            style: Theme.of(context).textTheme.titleSmall?.copyWith(
-              color: Colors.white,
-              fontWeight: FontWeight.w700,
             ),
           ),
         ],
