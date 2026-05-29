@@ -6,7 +6,7 @@ import 'package:abc_learning_system/features/enrollments/controllers/enrollment_
 import 'package:abc_learning_system/shared/widgets/app_loading_screen.dart';
 import 'package:abc_learning_system/shared/widgets/bordered_list.dart';
 import 'package:abc_learning_system/shared/widgets/bulleted_instructions_card.dart';
-import 'package:abc_learning_system/shared/widgets/info_row.dart';
+import 'package:abc_learning_system/shared/widgets/header_card.dart';
 import 'package:abc_learning_system/shared/students/controllers/student_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -86,8 +86,11 @@ class _StudentEnrollmentScreenBodyState
   @override
   Widget build(BuildContext context) {
     final profile = widget.profile;
-    final theme = Theme.of(context);
-    final fullName = buildFullName(profile);
+    final fullName = buildFullNameSurnameFirst(
+      profile.firstName,
+      profile.middleName,
+      profile.lastName,
+    );
     final userId = profile.userId;
 
     if (userId == null) {
@@ -134,25 +137,10 @@ class _StudentEnrollmentScreenBodyState
             return ListView(
               padding: const EdgeInsets.all(20),
               children: [
-                Card(
-                  elevation: 0,
-                  color: theme.colorScheme.surfaceContainerHighest,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        InfoRow(
-                          label: 'Student ID',
-                          value: studentProfile.studentId,
-                        ),
-                        InfoRow(label: 'Student Name', value: fullName),
-                      ],
-                    ),
-                  ),
+                HeaderCard(
+                  title: 'Student Enrollment',
+                  id: studentProfile.displayId,
+                  name: fullName,
                 ),
                 const SizedBox(height: 20),
                 BulletedInstructionsCard(

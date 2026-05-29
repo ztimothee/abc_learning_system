@@ -376,7 +376,7 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
                                     .map(
                                       (value) => DropdownMenuItem<int>(
                                         value: value,
-                                        child: Text(value.civilStatus),
+                                        child: Text(value.civilStatusString),
                                       ),
                                     )
                                     .toList(),

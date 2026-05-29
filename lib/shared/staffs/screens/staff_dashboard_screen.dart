@@ -19,7 +19,7 @@ class StaffDashboardScreen extends ConsumerWidget {
       body: Row(
         children: [
           SizedBox(
-            width: 180,
+            width: 220,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -52,8 +52,8 @@ class StaffDashboardScreen extends ConsumerWidget {
                       ),
                       CustomNavigationRailDestination(
                         label: 'Accounts',
-                        icon: Icons.account_circle_outlined,
-                        selectedIcon: Icons.account_circle,
+                        icon: Icons.account_balance_outlined,
+                        selectedIcon: Icons.account_balance,
                       ),
                     ],
                   ),

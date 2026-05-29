@@ -13,52 +13,64 @@ class EnrollmentOperationController extends AsyncNotifier<void> {
   }
 
   Future<void> enrollStudentInSubject(String studentId, String subjectId) async {
+    state = const AsyncValue.loading();
     try {
       final repository = ref.read(enrollmentRepositoryProvider);
       await repository.enrollStudentInSubject(studentId: studentId, subjectId: subjectId);
       ref.invalidate(enrollmentRepositoryProvider);
       ref.invalidate(studentEnrollmentSummaryProvider(studentId));
       ref.invalidate(studentRepositoryProvider);
-    } catch (e) {
+      
+      state = const AsyncValue.data(null);
+    } catch (e, st) {
       debugPrint('Error enrolling student: $e');
-      throw Exception('Error enrolling student: $e');
+      state = AsyncValue.error(e, st);
     }
   }
 
   Future<void> batchEnrollStudentInSubjects(String studentId, String batchId) async {
+    state = const AsyncValue.loading();
     try {
       final repository = ref.read(enrollmentRepositoryProvider);
       await repository.batchEnrollStudentInSubjects(studentId: studentId, batchId: batchId);
       ref.invalidate(enrollmentRepositoryProvider);
       ref.invalidate(studentEnrollmentSummaryProvider(studentId));
       ref.invalidate(studentRepositoryProvider);
-    } catch (e) {
+
+      state = const AsyncValue.data(null);
+    } catch (e, st) {
       debugPrint('Error batch enrolling student: $e');
-      throw Exception('Error batch enrolling student: $e');
+      state = AsyncValue.error(e, st);
     }
   }
 
   Future<void> updateEnrollmentStatus(String enrollmentId, int newStatus) async {
+    state = const AsyncValue.loading();
     try {
       final repository = ref.read(enrollmentRepositoryProvider);
       await repository.updateEnrollmentStatus(enrollmentId: enrollmentId, newStatus: newStatus);
       ref.invalidate(enrollmentRepositoryProvider);
       ref.invalidate(studentRepositoryProvider);
-    } catch (e) {
+
+      state = const AsyncValue.data(null);
+    } catch (e, st) {
       debugPrint('Error updating enrollment status: $e');
-      throw Exception('Error updating enrollment status: $e');
+      state = AsyncValue.error(e, st);
     }
   }
 
   Future<void> updateMultipleEnrollmentStatus(List<String> enrollmentIds, int newStatus) async {
+    state = const AsyncValue.loading();
     try {
       final repository = ref.read(enrollmentRepositoryProvider);
       await repository.updateMultipleEnrollmentStatus(enrollmentIds: enrollmentIds, newStatus: newStatus);
       ref.invalidate(enrollmentRepositoryProvider);
       ref.invalidate(studentRepositoryProvider);
-    } catch (e) {
+
+      state = const AsyncValue.data(null);
+    } catch (e, st) {
       debugPrint('Error updating multiple enrollment statuses: $e');
-      throw Exception('Error updating multiple enrollment statuses: $e');
+      state = AsyncValue.error(e, st);
     }
   }
 }

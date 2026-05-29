@@ -43,7 +43,7 @@ class Profile {
     final dynamic rawCivilStatus = map['civil_status'];
     final int parsedCivilStatus = rawCivilStatus is int
         ? rawCivilStatus
-        : (rawCivilStatus?.toString() ?? 'Single').civilStatusValue;
+        : (rawCivilStatus?.toString() ?? 'Single').civilStatusInt;
 
     return Profile(
       userId: map['user_id'] ?? '',

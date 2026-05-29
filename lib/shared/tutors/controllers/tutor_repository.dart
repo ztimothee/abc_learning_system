@@ -14,6 +14,7 @@ class TutorRepository {
         .from('tutors')
         .select('''
           tutor_id,
+          display_id,
           profiles (
             user_id,
             first_name,
@@ -38,6 +39,7 @@ class TutorRepository {
         .from('tutors')
         .select('''
           tutor_id,
+          display_id,
           profiles (
             user_id,
             first_name,
@@ -52,6 +54,31 @@ class TutorRepository {
           )
         ''')
         .eq('tutor_id', tutorId);
+
+    debugPrint('Raw response from tutors table: $response');
+    return TutorProfileDTO.fromMap(response.first);
+  }
+
+  Future<TutorProfileDTO> getTutorProfileByDisplayId(String displayId) async {
+    final response = await supabase
+        .from('tutors')
+        .select('''
+          tutor_id,
+          display_id,
+          profiles (
+            user_id,
+            first_name,
+            middle_name,
+            last_name,
+            date_of_birth,
+            gender,
+            contact_number,
+            address,
+            civil_status,
+            role
+          )
+        ''')
+        .eq('display_id', displayId);
 
     debugPrint('Raw response from tutors table: $response');
     return TutorProfileDTO.fromMap(response.first);
@@ -73,4 +100,10 @@ final tutorProfileByTutorIdProvider =
     FutureProvider.family<TutorProfileDTO, String>((ref, tutorId) async {
       final repository = ref.watch(tutorRepositoryProvider);
       return repository.getTutorProfileByTutorId(tutorId);
+    });
+
+final tutorProfileByDisplayIdProvider =
+    FutureProvider.family<TutorProfileDTO, String>((ref, displayId) async {
+      final repository = ref.watch(tutorRepositoryProvider);
+      return repository.getTutorProfileByDisplayId(displayId);
     });
