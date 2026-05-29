@@ -1,4 +1,6 @@
+import 'package:abc_learning_system/features/student_records/models/grades_dto.dart';
 import 'package:abc_learning_system/features/student_records/models/student_attendance_log.dart';
+import 'package:abc_learning_system/features/student_records/models/student_grades_report_dto.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -13,84 +15,96 @@ class StudentRecordsRepository {
     required String stubCode,
     required DateTime selectedDate,
   }) async {
-    // 1. Format the date to target the boundaries of that specific calendar day
+    // Format target date to match the database date format (YYYY-MM-DD)
     final String dateString = selectedDate.toIso8601String().split('T')[0];
-    final String startOfDay = '${dateString}T00:00:00.000Z';
-    final String endOfDay = '${dateString}T23:59:59.999Z';
 
-    // 2. Query the pre-generated rows from the attendances table
+    // 1. Always pull from the roster view so you get every confirmed student
     final List<Map<String, dynamic>> response = await supabase
-        .from('attendances')
+        .from('class_roster_view')
         .select('''
-          attendance_id,
+          enrollment_id,
+          display_id,
+          first_name,
+          last_name,
           status,
-          enrollments!inner (
+          attendances(
+            status
+          )
+        ''')
+        .eq('subject_id', subjectId)
+        .eq('stub_code', stubCode)
+        .eq('status', 1) // Only pull active/confirmed students
+        // Sub-filter: Grab attendance for this student ONLY matching today's date day
+        .eq('attendances.attendance_date', dateString);
+
+    // 2. Map cleanly into your uniform UI state list
+    return response.map((data) => StudentAttendanceLog.fromMap(data)).toList();
+  }
+
+  Future<List<StudentGradesReportDTO>> fetchStudentGrades(String studentId) async {
+    try {
+      final List<Map<String, dynamic>> response = await supabase
+          .from('enrollments')
+          .select('''
             enrollment_id,
-            subject_id,
-            subjects!inner (
-              subject_assignments!inner (
+            status,
+            subjects (
+              subject_name,
+              subject_assignments (
                 stub_code
               )
             ),
-            students (
-              display_id,
-              profiles (
-                first_name,
-                middle_name,
-                last_name
-              )
+            grades (
+              final_grade,
+              remarks
             )
-          )
-        ''')
-        // 3. Filter for this exact class section instance
-        .eq('enrollments.subject_id', subjectId)
-        .eq('enrollments.subjects.subject_assignments.stub_code', stubCode)
-        // 4. Target the specific day's timeframe block
-        .gte('attendance_date', startOfDay) // Greater than or equal to start of day
-        .lte('attendance_date', endOfDay); // Less than or equal to end of day
+          ''')
+          .eq('student_id', studentId)
+          .eq('status', 1); // Only show active confirmed enrollments
 
-    // 5. Safely map them using the new factory constructor
-    return response.map((data) => StudentAttendanceLog.fromPreGenMap(data)).toList();
+      return response.map((data) => StudentGradesReportDTO.fromMap(data)).toList();
+    } catch (e) {
+      debugPrint('Error fetching grade report with stubs: $e');
+      return [];
+    }
   }
 
   // ========= Attendance Submission Logic =======================================================================================
 
-  Future<void> preGenerateSemesterAttendance({
-    required DateTime startDate,
-    required DateTime endDate,
-  }) async {
-    try {
-      final String resultMessage = await supabase.rpc(
-        'generate_semester_attendance',
-        params: {
-          'p_start_date': startDate.toIso8601String().split('T')[0], // YYYY-MM-DD format
-          'p_end_date': endDate.toIso8601String().split('T')[0],
-        },
-      );
-      debugPrint(resultMessage); // "Successfully pre-generated X attendance records."
-    } catch (e) {
-      debugPrint('Error generating framework: $e');
-    }
-  }
-
   Future<void> submitAttendanceSheet({
     required List<StudentAttendanceLog> logs,
+    required DateTime attendanceDate,
   }) async {
     if (logs.isEmpty) return;
+
+    final String formattedDate = attendanceDate.toIso8601String().split('T')[0]; // YYYY-MM-DD
 
     // 1. Map your UI state objects into raw Postgres modification parameters
     final List<Map<String, dynamic>> rowsToUpdate = logs.map((log) {
       return {
-        'attendance_id': log.attendanceId, 
         'enrollment_id': log.enrollmentId,
         'status': log.status, 
+        'attendance_date': formattedDate,
       };
     }).toList();
 
     // 2. Perform a single batch update using upsert
     await supabase
         .from('attendances')
-        .upsert(rowsToUpdate);
+        .upsert(
+          rowsToUpdate,
+          onConflict: 'enrollment_id, attendance_date', // Ensure uniqueness per student per day
+        );
+  }
+
+  Future<void> submitGradeForStudent(GradesDTO grade) async {
+    await supabase
+        .from('grades')
+        .upsert({
+          'enrollment_id': grade.enrollmentId,
+          'final_grade': grade.finalGrade,
+          'remarks': grade.remarks,
+        }, onConflict: 'enrollment_id'); // Ensure one grade per enrollment
   }
 }
 
@@ -107,5 +121,13 @@ final loadAttendanceSheetProvider = FutureProvider.family<
       stubCode: params['stubCode'],
       selectedDate: params['selectedDate'],
     );
+  },
+);
+
+final fetchStudentGradesProvider = FutureProvider.family<
+    List<StudentGradesReportDTO>, String>(
+  (ref, studentId) async {
+    final repository = ref.read(studentRecordsRepositoryProvider);
+    return repository.fetchStudentGrades(studentId);
   },
 );
