@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:abc_learning_system/features/student_records/controllers/student_records_repository.dart';
+import 'package:abc_learning_system/features/student_records/models/grades_dto.dart';
 import 'package:abc_learning_system/features/student_records/models/student_attendance_log.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -11,17 +12,11 @@ class StudentRecordsOperationController extends AsyncNotifier<void> {
     return null;
   }
 
-  Future<void> preGenerateSemesterAttendance({
-    required DateTime startDate,
-    required DateTime endDate,
-  }) async {
+  Future<void> submitAttendance(List<StudentAttendanceLog> rowsToUpdate, DateTime attendanceDate) async {
     state = const AsyncValue.loading();
     try {
       final repository = ref.read(studentRecordsRepositoryProvider);
-      await repository.preGenerateSemesterAttendance(
-        startDate: startDate,
-        endDate: endDate,
-      );
+      await repository.submitAttendanceSheet(logs: rowsToUpdate, attendanceDate: attendanceDate);
       ref.invalidate(studentRecordsRepositoryProvider);
       state = const AsyncValue.data(null);
     } catch (e, st) {
@@ -29,11 +24,11 @@ class StudentRecordsOperationController extends AsyncNotifier<void> {
     }
   }
 
-  Future<void> submitAttendance(List<StudentAttendanceLog> rowsToUpdate) async {
+  Future<void> submitGrade(GradesDTO grade) async {
     state = const AsyncValue.loading();
     try {
       final repository = ref.read(studentRecordsRepositoryProvider);
-      await repository.submitAttendanceSheet(logs: rowsToUpdate);
+      await repository.submitGradeForStudent(grade);
       ref.invalidate(studentRecordsRepositoryProvider);
       state = const AsyncValue.data(null);
     } catch (e, st) {
