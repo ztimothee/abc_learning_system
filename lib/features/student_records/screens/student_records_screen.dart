@@ -1,13 +1,21 @@
+import 'package:abc_learning_system/core/themes/formatting_functions.dart';
+import 'package:abc_learning_system/features/auth/controllers/auth_service.dart';
+import 'package:abc_learning_system/features/auth/controllers/theme_settings_controller.dart';
+import 'package:abc_learning_system/features/student_records/controllers/student_records_repository.dart';
+import 'package:abc_learning_system/features/student_records/models/student_grades_report_dto.dart';
+import 'package:abc_learning_system/shared/students/controllers/student_repository.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class StudentRecordsScreen extends StatefulWidget {
+class StudentRecordsScreen extends ConsumerStatefulWidget {
   const StudentRecordsScreen({super.key});
 
   @override
-  State<StudentRecordsScreen> createState() => _StudentRecordsScreenState();
+  ConsumerState<StudentRecordsScreen> createState() =>
+      _StudentRecordsScreenState();
 }
 
-class _StudentRecordsScreenState extends State<StudentRecordsScreen> {
+class _StudentRecordsScreenState extends ConsumerState<StudentRecordsScreen> {
   late final StudentRecordsController _controller;
 
   @override
@@ -24,93 +32,177 @@ class _StudentRecordsScreenState extends State<StudentRecordsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final themeSettings = ref.watch(themeSettingsProvider);
+    final theme = Theme.of(context);
+    final palette = themeSettings.colorTheme;
+    final backgroundStart = theme.brightness == Brightness.dark
+        ? Color.lerp(theme.colorScheme.background, palette.dark, 0.18) ??
+              theme.colorScheme.background
+        : Color.lerp(theme.colorScheme.background, palette.light, 0.08) ??
+              theme.colorScheme.background;
+    final backgroundEnd = theme.brightness == Brightness.dark
+        ? Color.lerp(theme.colorScheme.surface, palette.dark, 0.22) ??
+              theme.colorScheme.surface
+        : Color.lerp(theme.colorScheme.surface, palette.light, 0.06) ??
+              theme.colorScheme.surface;
+
     return Scaffold(
       body: Container(
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [Color(0xFFF6F8FC), Color(0xFFE9EEF7)],
+            colors: [backgroundStart, backgroundEnd],
           ),
         ),
         child: SafeArea(
           child: AnimatedBuilder(
             animation: _controller,
             builder: (context, _) {
-              return SingleChildScrollView(
-                padding: const EdgeInsets.fromLTRB(20, 24, 20, 32),
-                child: Center(
-                  child: ConstrainedBox(
-                    constraints: const BoxConstraints(maxWidth: 1100),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        _HeaderCard(
-                          studentId: _controller.studentId,
-                          studentName: _controller.studentName,
+              final profileAsync = ref.watch(userProfileProvider);
+
+              return profileAsync.when(
+                loading: () => const Center(child: CircularProgressIndicator()),
+                error: (error, _) =>
+                    Center(child: Text('Error loading profile: $error')),
+                data: (profile) {
+                  if (profile == null) {
+                    return const Center(
+                      child: Text(
+                        'No student profile is available for this account.',
+                      ),
+                    );
+                  }
+
+                  final userId = profile.userId;
+                  if (userId == null || userId.isEmpty) {
+                    return const Center(
+                      child: Text(
+                        'No student ID is available for this account.',
+                      ),
+                    );
+                  }
+
+                  return ref
+                      .watch(studentProfileByUserIdProvider(userId))
+                      .when(
+                        loading: () =>
+                            const Center(child: CircularProgressIndicator()),
+                        error: (error, _) => Center(
+                          child: Text('Error loading student profile: $error'),
                         ),
-                        const SizedBox(height: 20),
-                        _GradesTableCard(
-                          grades: _controller.grades,
-                          visible: _controller.showGrades,
-                        ),
-                        const SizedBox(height: 20),
-                        _SelectionButton(
-                          label: 'School year',
-                          value: _controller.selectedSchoolYear,
-                          icon: Icons.calendar_month_outlined,
-                          onPressed: () => _showSelectionSheet(
-                            context: context,
-                            title: 'Select school year',
-                            options: _controller.schoolYears,
-                            currentValue: _controller.selectedSchoolYear,
-                            onSelected: _controller.setSchoolYear,
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-                        _SelectionButton(
-                          label: 'Semester',
-                          value: _controller.selectedSemester,
-                          icon: Icons.event_note_outlined,
-                          onPressed: () => _showSelectionSheet(
-                            context: context,
-                            title: 'Select semester',
-                            options: _controller.semesters,
-                            currentValue: _controller.selectedSemester,
-                            onSelected: _controller.setSemester,
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-                        FilledButton(
-                          onPressed: () {
-                            _controller.showGradesNow();
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text('Temporary grades displayed.'),
-                              ),
-                            );
-                          },
-                          style: FilledButton.styleFrom(
-                            minimumSize: const Size.fromHeight(52),
-                            backgroundColor: const Color(0xFF1D4ED8),
-                            foregroundColor: Colors.white,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(18),
+                        data: (studentProfile) {
+                          final gradesAsync = ref.watch(
+                            fetchStudentGradesProvider(
+                              studentProfile.studentId,
                             ),
-                          ),
-                          child: const Text('Show My Grades'),
-                        ),
-                        const SizedBox(height: 16),
-                        Text(
-                          'Selections are temporary placeholders until backend data is connected.',
-                          style: Theme.of(context).textTheme.bodySmall
-                              ?.copyWith(color: const Color(0xFF5B6475)),
-                          textAlign: TextAlign.center,
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
+                          );
+                          final fullName = buildFullName(
+                            studentProfile.firstName,
+                            studentProfile.middleName,
+                            studentProfile.lastName,
+                          );
+
+                          return SingleChildScrollView(
+                            padding: const EdgeInsets.fromLTRB(20, 24, 20, 32),
+                            child: Center(
+                              child: ConstrainedBox(
+                                constraints: const BoxConstraints(
+                                  maxWidth: 1100,
+                                ),
+                                child: Column(
+                                  crossAxisAlignment:
+                                      CrossAxisAlignment.stretch,
+                                  children: [
+                                    _HeaderCard(
+                                      studentId: studentProfile.displayId,
+                                      studentName: fullName,
+                                      accentLight: palette.light,
+                                      accentDark: palette.dark,
+                                    ),
+                                    const SizedBox(height: 20),
+                                    _GradesTableCard(
+                                      gradesAsync: gradesAsync,
+                                      visible: _controller.showGrades,
+                                      accentColor: palette.dark,
+                                    ),
+                                    const SizedBox(height: 20),
+                                    _SelectionButton(
+                                      label: 'School year',
+                                      value: _controller.selectedSchoolYear,
+                                      icon: Icons.calendar_month_outlined,
+                                      accentColor: palette.dark,
+                                      onPressed: () => _showSelectionSheet(
+                                        context: context,
+                                        title: 'Select school year',
+                                        options: _controller.schoolYears,
+                                        currentValue:
+                                            _controller.selectedSchoolYear,
+                                        accentColor: palette.dark,
+                                        onSelected: _controller.setSchoolYear,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 12),
+                                    _SelectionButton(
+                                      label: 'Semester',
+                                      value: _controller.selectedSemester,
+                                      icon: Icons.event_note_outlined,
+                                      accentColor: palette.dark,
+                                      onPressed: () => _showSelectionSheet(
+                                        context: context,
+                                        title: 'Select semester',
+                                        options: _controller.semesters,
+                                        currentValue:
+                                            _controller.selectedSemester,
+                                        accentColor: palette.dark,
+                                        onSelected: _controller.setSemester,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 16),
+                                    FilledButton(
+                                      onPressed: () {
+                                        _controller.showGradesNow();
+                                        ScaffoldMessenger.of(
+                                          context,
+                                        ).showSnackBar(
+                                          const SnackBar(
+                                            content: Text(
+                                              'Grades are now loaded from the student records provider.',
+                                            ),
+                                          ),
+                                        );
+                                      },
+                                      style: FilledButton.styleFrom(
+                                        minimumSize: const Size.fromHeight(52),
+                                        backgroundColor: palette.dark,
+                                        foregroundColor: Colors.white,
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(
+                                            18,
+                                          ),
+                                        ),
+                                      ),
+                                      child: const Text('Show My Grades'),
+                                    ),
+                                    const SizedBox(height: 16),
+                                    Text(
+                                      'Grade data is pulled from the signed-in student record and the app theme follows the selected palette.',
+                                      style: theme.textTheme.bodySmall
+                                          ?.copyWith(
+                                            color: theme
+                                                .colorScheme
+                                                .onSurfaceVariant,
+                                          ),
+                                      textAlign: TextAlign.center,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          );
+                        },
+                      );
+                },
               );
             },
           ),
@@ -124,12 +216,13 @@ class _StudentRecordsScreenState extends State<StudentRecordsScreen> {
     required String title,
     required List<String> options,
     required String currentValue,
+    required Color accentColor,
     required ValueChanged<String> onSelected,
   }) async {
     final selectedValue = await showModalBottomSheet<String>(
       context: context,
       showDragHandle: true,
-      backgroundColor: Colors.white,
+      backgroundColor: Theme.of(context).colorScheme.surface,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
@@ -156,15 +249,21 @@ class _StudentRecordsScreenState extends State<StudentRecordsScreen> {
                       style: OutlinedButton.styleFrom(
                         minimumSize: const Size.fromHeight(48),
                         alignment: Alignment.centerLeft,
-                        foregroundColor: const Color(0xFF0F172A),
+                        foregroundColor: Theme.of(
+                          context,
+                        ).colorScheme.onSurface,
                         side: BorderSide(
                           color: option == currentValue
-                              ? const Color(0xFF1D4ED8)
-                              : const Color(0xFFCBD5E1),
+                              ? accentColor
+                              : Theme.of(context).colorScheme.outline,
                         ),
                         backgroundColor: option == currentValue
-                            ? const Color(0xFFEFF6FF)
-                            : Colors.white,
+                            ? Color.lerp(
+                                Theme.of(context).colorScheme.surface,
+                                accentColor,
+                                0.12,
+                              )
+                            : Theme.of(context).colorScheme.surface,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(14),
                         ),
@@ -173,10 +272,10 @@ class _StudentRecordsScreenState extends State<StudentRecordsScreen> {
                         children: [
                           Expanded(child: Text(option)),
                           if (option == currentValue)
-                            const Icon(
+                            Icon(
                               Icons.check_circle,
                               size: 18,
-                              color: Color(0xFF1D4ED8),
+                              color: accentColor,
                             ),
                         ],
                       ),
@@ -198,14 +297,10 @@ class _StudentRecordsScreenState extends State<StudentRecordsScreen> {
 
 class StudentRecordsController extends ChangeNotifier {
   StudentRecordsController()
-    : studentId = 'STU-2026-001',
-      studentName = 'John Doe',
-      selectedSchoolYear = '2025-2026',
+    : selectedSchoolYear = '2025-2026',
       selectedSemester = '1st Semester',
       _showGrades = false;
 
-  final String studentId;
-  final String studentName;
   final List<String> schoolYears = const [
     '2024-2025',
     '2025-2026',
@@ -215,26 +310,6 @@ class StudentRecordsController extends ChangeNotifier {
     '1st Semester',
     '2nd Semester',
     'Summer Term',
-  ];
-  final List<_GradeRowData> grades = const [
-    _GradeRowData(
-      subjectCode: 'MATH-101',
-      subjectName: 'Basic Mathematics',
-      studentGrade: '89',
-      remarks: 'Passed',
-    ),
-    _GradeRowData(
-      subjectCode: 'ENG-102',
-      subjectName: 'Communication Arts',
-      studentGrade: '92',
-      remarks: 'Passed',
-    ),
-    _GradeRowData(
-      subjectCode: 'SCI-103',
-      subjectName: 'General Science',
-      studentGrade: '87',
-      remarks: 'Passed',
-    ),
   ];
 
   String selectedSchoolYear;
@@ -260,18 +335,27 @@ class StudentRecordsController extends ChangeNotifier {
 }
 
 class _HeaderCard extends StatelessWidget {
-  const _HeaderCard({required this.studentId, required this.studentName});
+  const _HeaderCard({
+    required this.studentId,
+    required this.studentName,
+    required this.accentLight,
+    required this.accentDark,
+  });
 
   final String studentId;
   final String studentName;
+  final Color accentLight;
+  final Color accentDark;
 
   @override
   Widget build(BuildContext context) {
+    final colors = [darken(accentLight, 0.22), darken(accentDark, 0.1)];
+
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [Color(0xFF0F172A), Color(0xFF1D4ED8)],
+        gradient: LinearGradient(
+          colors: colors,
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
@@ -330,17 +414,24 @@ class _HeaderCard extends StatelessWidget {
 }
 
 class _GradesTableCard extends StatelessWidget {
-  const _GradesTableCard({required this.grades, required this.visible});
+  const _GradesTableCard({
+    required this.gradesAsync,
+    required this.visible,
+    required this.accentColor,
+  });
 
-  final List<_GradeRowData> grades;
+  final AsyncValue<List<StudentGradesReportDTO>> gradesAsync;
   final bool visible;
+  final Color accentColor;
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Container(
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: theme.colorScheme.surface,
         borderRadius: BorderRadius.circular(24),
         boxShadow: const [
           BoxShadow(
@@ -358,26 +449,26 @@ class _GradesTableCard extends StatelessWidget {
               Container(
                 width: 10,
                 height: 10,
-                decoration: const BoxDecoration(
-                  color: Color(0xFF1D4ED8),
+                decoration: BoxDecoration(
+                  color: accentColor,
                   shape: BoxShape.circle,
                 ),
               ),
               const SizedBox(width: 10),
               Text(
-                'Temporary Grades',
-                style: Theme.of(
-                  context,
-                ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800),
+                'Student Grades',
+                style: theme.textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.w800,
+                ),
               ),
             ],
           ),
           const SizedBox(height: 8),
           Text(
-            'A preview of placeholder grade data for the selected term.',
-            style: Theme.of(
-              context,
-            ).textTheme.bodySmall?.copyWith(color: const Color(0xFF64748B)),
+            'Grades are loaded from the signed-in student record.',
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
           ),
           const SizedBox(height: 16),
           if (!visible)
@@ -385,22 +476,22 @@ class _GradesTableCard extends StatelessWidget {
               width: double.infinity,
               padding: const EdgeInsets.symmetric(vertical: 28, horizontal: 16),
               decoration: BoxDecoration(
-                color: const Color(0xFFF8FAFC),
+                color: theme.colorScheme.surfaceContainerHighest,
                 borderRadius: BorderRadius.circular(18),
-                border: Border.all(color: const Color(0xFFE2E8F0)),
+                border: Border.all(color: theme.colorScheme.outline),
               ),
               child: Column(
                 children: [
-                  const Icon(
+                  Icon(
                     Icons.visibility_outlined,
                     size: 34,
-                    color: Color(0xFF64748B),
+                    color: theme.colorScheme.onSurfaceVariant,
                   ),
                   const SizedBox(height: 10),
                   Text(
-                    'Tap "Show My Grades" to display the temporary data.',
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: const Color(0xFF475569),
+                    'Tap "Show My Grades" to display the student records data.',
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
                     ),
                     textAlign: TextAlign.center,
                   ),
@@ -408,36 +499,92 @@ class _GradesTableCard extends StatelessWidget {
               ),
             )
           else
-            ClipRRect(
-              borderRadius: BorderRadius.circular(18),
-              child: SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: DataTable(
-                  columnSpacing: 28,
-                  horizontalMargin: 16,
-                  headingRowColor: WidgetStateProperty.all(
-                    const Color(0xFFEFF6FF),
+            gradesAsync.when(
+              loading: () => const Padding(
+                padding: EdgeInsets.symmetric(vertical: 28),
+                child: Center(child: CircularProgressIndicator()),
+              ),
+              error: (error, _) => Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(
+                  vertical: 28,
+                  horizontal: 16,
+                ),
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.surfaceContainerHighest,
+                  borderRadius: BorderRadius.circular(18),
+                  border: Border.all(color: theme.colorScheme.outline),
+                ),
+                child: Text(
+                  'Unable to load grades: $error',
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
                   ),
-                  columns: const [
-                    DataColumn(label: Text('Subject Code')),
-                    DataColumn(label: Text('Subject Name')),
-                    DataColumn(label: Text('Student Grade')),
-                    DataColumn(label: Text('Remarks')),
-                  ],
-                  rows: grades
-                      .map(
-                        (grade) => DataRow(
-                          cells: [
-                            DataCell(Text(grade.subjectCode)),
-                            DataCell(Text(grade.subjectName)),
-                            DataCell(Text(grade.studentGrade)),
-                            DataCell(Text(grade.remarks)),
-                          ],
-                        ),
-                      )
-                      .toList(),
+                  textAlign: TextAlign.center,
                 ),
               ),
+              data: (grades) {
+                if (grades.isEmpty) {
+                  return Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(
+                      vertical: 28,
+                      horizontal: 16,
+                    ),
+                    decoration: BoxDecoration(
+                      color: theme.colorScheme.surfaceContainerHighest,
+                      borderRadius: BorderRadius.circular(18),
+                      border: Border.all(color: theme.colorScheme.outline),
+                    ),
+                    child: Text(
+                      'No grade records were returned for this student.',
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  );
+                }
+
+                return ClipRRect(
+                  borderRadius: BorderRadius.circular(18),
+                  child: SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: DataTable(
+                      columnSpacing: 28,
+                      horizontalMargin: 16,
+                      headingRowColor: WidgetStateProperty.all(
+                        Color.lerp(
+                              theme.colorScheme.surface,
+                              accentColor,
+                              0.12,
+                            ) ??
+                            theme.colorScheme.surface,
+                      ),
+                      columns: const [
+                        DataColumn(label: Text('Subject')),
+                        DataColumn(label: Text('Stub Code')),
+                        DataColumn(label: Text('Final Grade')),
+                        DataColumn(label: Text('Remarks')),
+                      ],
+                      rows: grades
+                          .map(
+                            (grade) => DataRow(
+                              cells: [
+                                DataCell(Text(grade.subjectName)),
+                                DataCell(Text(grade.stubCode)),
+                                DataCell(
+                                  Text(grade.finalGrade?.toString() ?? 'N/A'),
+                                ),
+                                DataCell(Text(grade.remarks)),
+                              ],
+                            ),
+                          )
+                          .toList(),
+                    ),
+                  ),
+                );
+              },
             ),
         ],
       ),
@@ -450,30 +597,34 @@ class _SelectionButton extends StatelessWidget {
     required this.label,
     required this.value,
     required this.icon,
+    required this.accentColor,
     required this.onPressed,
   });
 
   final String label;
   final String value;
   final IconData icon;
+  final Color accentColor;
   final VoidCallback onPressed;
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return OutlinedButton(
       onPressed: onPressed,
       style: OutlinedButton.styleFrom(
         minimumSize: const Size.fromHeight(54),
         alignment: Alignment.centerLeft,
-        foregroundColor: const Color(0xFF0F172A),
-        backgroundColor: Colors.white,
-        side: const BorderSide(color: Color(0xFFCBD5E1)),
+        foregroundColor: theme.colorScheme.onSurface,
+        backgroundColor: theme.colorScheme.surface,
+        side: BorderSide(color: accentColor.withValues(alpha: 0.2)),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
         padding: const EdgeInsets.symmetric(horizontal: 18),
       ),
       child: Row(
         children: [
-          Icon(icon, size: 20, color: const Color(0xFF1D4ED8)),
+          Icon(icon, size: 20, color: accentColor),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
@@ -482,22 +633,22 @@ class _SelectionButton extends StatelessWidget {
               children: [
                 Text(
                   label,
-                  style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                    color: const Color(0xFF64748B),
+                  style: theme.textTheme.labelMedium?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
                     fontWeight: FontWeight.w700,
                   ),
                 ),
                 const SizedBox(height: 2),
                 Text(
                   value,
-                  style: Theme.of(
-                    context,
-                  ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700),
+                  style: theme.textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.w700,
+                  ),
                 ),
               ],
             ),
           ),
-          const Icon(Icons.expand_more, color: Color(0xFF94A3B8)),
+          Icon(Icons.expand_more, color: theme.colorScheme.outline),
         ],
       ),
     );
@@ -542,18 +693,4 @@ class _InfoChip extends StatelessWidget {
       ),
     );
   }
-}
-
-class _GradeRowData {
-  const _GradeRowData({
-    required this.subjectCode,
-    required this.subjectName,
-    required this.studentGrade,
-    required this.remarks,
-  });
-
-  final String subjectCode;
-  final String subjectName;
-  final String studentGrade;
-  final String remarks;
 }

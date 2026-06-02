@@ -50,11 +50,6 @@ class TutorDashboardScreen extends ConsumerWidget {
                         icon: Icons.school_outlined,
                         selectedIcon: Icons.school,
                       ),
-                      CustomNavigationRailDestination(
-                        label: 'Accounts',
-                        icon: Icons.account_balance_outlined,
-                        selectedIcon: Icons.account_balance,
-                      ),
                     ],
                   ),
                 ),

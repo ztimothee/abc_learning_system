@@ -60,14 +60,14 @@ class _StudentEnrollmentScreenBodyState
       final controller = ref.read(
         enrollmentOperationControllerProvider.notifier,
       );
-      await controller.updateMultipleEnrollmentStatus(pendingIds, 1);
+      await controller.updateMultipleEnrollmentStatus(studentId, pendingIds, 1);
 
       if (!mounted) return;
+
+      ref.invalidate(studentEnrollmentSummaryProvider(studentId));
       setState(() {
         _pendingEnrollmentIds.clear();
       });
-
-      ref.invalidate(studentEnrollmentSummaryProvider(studentId));
 
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(

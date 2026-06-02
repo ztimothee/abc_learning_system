@@ -46,11 +46,6 @@ class StaffDashboardScreen extends ConsumerWidget {
                         selectedIcon: Icons.book,
                       ),
                       CustomNavigationRailDestination(
-                        label: 'Student Records',
-                        icon: Icons.school_outlined,
-                        selectedIcon: Icons.school,
-                      ),
-                      CustomNavigationRailDestination(
                         label: 'Accounts',
                         icon: Icons.account_balance_outlined,
                         selectedIcon: Icons.account_balance,
@@ -66,7 +61,9 @@ class StaffDashboardScreen extends ConsumerWidget {
                         label: 'Settings',
                         icon: Icons.settings,
                         onPressed: () {
-                          context.push('/settings'); // Uncomment and implement settings route when ready
+                          context.push(
+                            '/settings',
+                          ); // Uncomment and implement settings route when ready
                         },
                       ),
                       const SizedBox(height: 8),
