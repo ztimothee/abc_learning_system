@@ -74,7 +74,6 @@ final routerProvider = Provider<GoRouter>((ref) {
           return LoginScreen(errorMessage: errorMessage);
         },
       ),
-      GoRoute(path: '/signup', builder: (context, state) => SignUpScreen()),
       GoRoute(
         path: '/settings',
         builder: (context, state) => const ThemeSettingsScreen(),
@@ -162,6 +161,9 @@ final routerProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: '/staff/profile',
                 builder: (context, state) => ProfileScreen(),
+                routes: [
+                  GoRoute(path: '/signup', builder: (context, state) => SignUpScreen()),
+                ]
               ),
             ],
           ),
