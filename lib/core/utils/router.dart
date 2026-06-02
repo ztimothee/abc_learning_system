@@ -8,7 +8,6 @@ import 'package:abc_learning_system/features/enrollments/screens/staff_enrollmen
 import 'package:abc_learning_system/features/enrollments/screens/student_enrollment_screen.dart';
 import 'package:abc_learning_system/features/enrollments/screens/tutor_enrollment_screen.dart';
 import 'package:abc_learning_system/features/profile/screens/profile_screen.dart';
-import 'package:abc_learning_system/features/student_records/screens/staff_student_records_screen.dart';
 import 'package:abc_learning_system/features/student_records/screens/student_records_screen.dart';
 import 'package:abc_learning_system/features/student_records/screens/tutor_student_records_screen.dart';
 import 'package:abc_learning_system/shared/staffs/screens/staff_dashboard_screen.dart';
@@ -150,14 +149,6 @@ final routerProvider = Provider<GoRouter>((ref) {
               ),
             ],
           ),
-          StatefulShellBranch(
-            routes: [
-              GoRoute(
-                path: '/tutor/accounts',
-                builder: (context, state) => FacultyAccountLedgersScreen(),
-              ),
-            ],
-          ),
         ],
       ),
 
@@ -179,14 +170,6 @@ final routerProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: '/staff/enrollments',
                 builder: (context, state) => StaffEnrollmentScreen(),
-              ),
-            ],
-          ),
-          StatefulShellBranch(
-            routes: [
-              GoRoute(
-                path: '/staff/records',
-                builder: (context, state) => StaffStudentRecordsScreen(),
               ),
             ],
           ),

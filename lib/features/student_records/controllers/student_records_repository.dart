@@ -1,3 +1,4 @@
+import 'package:abc_learning_system/features/student_records/models/class_student_grade_dto.dart';
 import 'package:abc_learning_system/features/student_records/models/grades_dto.dart';
 import 'package:abc_learning_system/features/student_records/models/student_attendance_log.dart';
 import 'package:abc_learning_system/features/student_records/models/student_grades_report_dto.dart';
@@ -69,6 +70,36 @@ class StudentRecordsRepository {
     }
   }
 
+  Future<List<ClassStudentGradeDTO>> fetchClassGrades({
+    required String subjectId,
+    required String stubCode,
+  }) async {
+    try {
+      // Querying the view directly simplifies the nested joins down to a flat selection
+      final List<Map<String, dynamic>> response = await supabase
+          .from('class_roster_view')
+          .select('''
+            enrollment_id,
+            display_id,
+            first_name,
+            last_name,
+            status,
+            grades (
+              final_grade,
+              remarks
+            )
+          ''')
+          .eq('subject_id', subjectId)
+          .eq('stub_code', stubCode)
+          .eq('status', 1); // Only active confirmed enrollments
+
+      return response.map((data) => ClassStudentGradeDTO.fromMap(data)).toList();
+    } catch (e) {
+      debugPrint('Database Error in fetchClassGrades via View: $e');
+      rethrow;
+    }
+  }
+
   // ========= Attendance Submission Logic =======================================================================================
 
   Future<void> submitAttendanceSheet({
@@ -105,6 +136,12 @@ class StudentRecordsRepository {
           'final_grade': grade.finalGrade,
           'remarks': grade.remarks,
         }, onConflict: 'enrollment_id'); // Ensure one grade per enrollment
+  }
+
+  Future<void> submitBulkClassGrades(List<Map<String, dynamic>> gradeRecords) async {
+    await supabase
+        .from('grades')
+        .upsert(gradeRecords); // Removed onConflict override target completely
   }
 }
 
