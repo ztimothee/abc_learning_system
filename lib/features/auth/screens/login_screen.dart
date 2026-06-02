@@ -1,7 +1,7 @@
 import 'package:abc_learning_system/core/themes/ui.dart';
 import 'package:abc_learning_system/features/auth/controllers/auth_service.dart';
 import 'package:abc_learning_system/features/auth/models/login_dto.dart';
-import 'package:flutter/gestures.dart';
+// import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -135,27 +135,27 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         child: Text('Login', style: TextStyle(fontSize: 16)),
                       ),
                     ),
-                    const SizedBox(height: 16),
-                    Text.rich(
-                      TextSpan(
-                        text: "Don't have an account? ",
-                        children: [
-                          TextSpan(
-                            text: 'Sign up',
-                            style: TextStyle(
-                              color: Theme.of(context).colorScheme.primary,
-                              fontWeight: FontWeight.w600,
-                            ),
-                            recognizer: TapGestureRecognizer()
-                              ..onTap = () {
-                                debugPrint('Navigating to Sign Up screen');
-                                context.push('/signup');
-                              },
-                          ),
-                        ],
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
+                    // const SizedBox(height: 16),
+                    // Text.rich(
+                    //   TextSpan(
+                    //     text: "Don't have an account? ",
+                    //     children: [
+                    //       TextSpan(
+                    //         text: 'Sign up',
+                    //         style: TextStyle(
+                    //           color: Theme.of(context).colorScheme.primary,
+                    //           fontWeight: FontWeight.w600,
+                    //         ),
+                    //         recognizer: TapGestureRecognizer()
+                    //           ..onTap = () {
+                    //             debugPrint('Navigating to Sign Up screen');
+                    //             context.push('/signup');
+                    //           },
+                    //       ),
+                    //     ],
+                    //   ),
+                    //   textAlign: TextAlign.center,
+                    // ),
                     const SizedBox(height: 8),
                     TextButton.icon(
                       onPressed: () {

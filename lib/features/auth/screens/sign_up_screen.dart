@@ -2,7 +2,7 @@ import 'package:abc_learning_system/core/themes/status_map.dart';
 import 'package:abc_learning_system/features/auth/controllers/auth_service.dart';
 import 'package:abc_learning_system/features/auth/models/login_dto.dart';
 import 'package:abc_learning_system/features/auth/models/profile.dart';
-import 'package:flutter/gestures.dart';
+// import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -443,29 +443,29 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
                             ),
                           ),
                         ),
-                        const SizedBox(height: 16),
-                        Text.rich(
-                          TextSpan(
-                            text: 'Already have an account? ',
-                            children: [
-                              TextSpan(
-                                text: 'Login',
-                                style: const TextStyle(
-                                  color: Colors.blue,
-                                  decoration: TextDecoration.underline,
-                                ),
-                                recognizer: TapGestureRecognizer()
-                                  ..onTap = () {
-                                    debugPrint(
-                                      'Navigating back to Login screen',
-                                    );
-                                    context.pop();
-                                  },
-                              ),
-                            ],
-                          ),
-                          textAlign: TextAlign.center,
-                        ),
+                        // const SizedBox(height: 16),
+                        // Text.rich(
+                        //   TextSpan(
+                        //     text: 'Already have an account? ',
+                        //     children: [
+                        //       TextSpan(
+                        //         text: 'Login',
+                        //         style: const TextStyle(
+                        //           color: Colors.blue,
+                        //           decoration: TextDecoration.underline,
+                        //         ),
+                        //         recognizer: TapGestureRecognizer()
+                        //           ..onTap = () {
+                        //             debugPrint(
+                        //               'Navigating back to Login screen',
+                        //             );
+                        //             context.pop();
+                        //           },
+                        //       ),
+                        //     ],
+                        //   ),
+                        //   textAlign: TextAlign.center,
+                        // ),
                       ],
                     ),
                   ),
