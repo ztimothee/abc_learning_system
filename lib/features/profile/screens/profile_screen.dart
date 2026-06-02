@@ -9,6 +9,7 @@ import 'package:abc_learning_system/shared/widgets/app_loading_screen.dart';
 import 'package:abc_learning_system/shared/widgets/info_row.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 class ProfileScreen extends ConsumerWidget {
   const ProfileScreen({super.key});
@@ -181,6 +182,21 @@ class _ProfileBody extends ConsumerWidget {
             ),
           ),
         ),
+        const SizedBox(height: 24),
+        if (currentRole == 2) ...[
+          Align(
+            alignment: Alignment.topRight,
+            child: ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                maximumSize: const Size(250, 64),
+              ),
+              onPressed: () {
+                context.push('/staff/profile/signup');
+              },
+              child: const Text('Create Account'),
+            ),
+          ),
+        ],
       ],
     );
   }
