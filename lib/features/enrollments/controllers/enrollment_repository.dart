@@ -134,6 +134,9 @@ class EnrollmentRepository {
     required String enrollmentId,
     required int newStatus,
   }) async {
+    debugPrint(
+      'Updating enrollment status for enrollment ID: $enrollmentId to new status: $newStatus',
+    );
     await supabase
         .from('enrollments')
         .update({'status': newStatus})
@@ -144,13 +147,22 @@ class EnrollmentRepository {
     required List<String> enrollmentIds,
     required int newStatus,
   }) async {
+    debugPrint(
+      'Updating multiple enrollment statuses for IDs: $enrollmentIds to new status: $newStatus',
+    );
     if (enrollmentIds.isEmpty) return; // No enrollments to update
 
+    debugPrint(
+      'Enrollment IDs exist. Performing batch update for enrollment IDs: $enrollmentIds with new status: $newStatus',
+    );
     // Do this in only a single query to avoid multiple round trips to the database
-    await supabase
+    final updatedRows = await supabase
         .from('enrollments')
         .update({'status': newStatus})
-        .inFilter('enrollment_id', enrollmentIds);
+        .inFilter('enrollment_id', enrollmentIds)
+        .select();
+
+    debugPrint('ROWS ACTUALLY MODIFIED BY DB: $updatedRows');
   }
 }
 
