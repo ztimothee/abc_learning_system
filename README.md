@@ -1,5 +1,7 @@
 # abc_learning_system
 
+school web based enrollment - pay tuition - monitor attendance - academic tracking - scheduling - grading system
+
 A new Flutter project.
 
 ## Getting Started
